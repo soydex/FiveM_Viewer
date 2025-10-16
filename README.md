@@ -27,6 +27,7 @@ A modern, responsive web application for viewing real-time player lists from Fiv
 
 ### 🎨 User Experience
 - **Dark/Light Theme**: Automatic system preference detection with manual override
+- **Multilingual Support**: English and French language options
 - **Responsive Design**: Optimized for desktop and mobile devices
 - **Toast Notifications**: User-friendly feedback for all actions
 - **Server History**: Quick access to recently visited servers
@@ -43,6 +44,7 @@ A modern, responsive web application for viewing real-time player lists from Fiv
 - **Charts**: Recharts for data visualization
 - **Icons**: Lucide React
 - **Routing**: React Router DOM
+- **Internationalization**: i18next for multilingual support
 - **Build Tool**: Vite with TypeScript
 
 ## Development
@@ -95,15 +97,22 @@ Build and deploy the `dist/` folder to any static hosting service:
 src/
 ├── components/          # Reusable UI components
 │   ├── Footer.tsx      # Site footer
+│   ├── LanguageSwitcher.tsx # Language selection component
 │   ├── Mobile.tsx      # Mobile-specific layout
 │   ├── Notifications.tsx # Toast notification system
 │   ├── StatisticsCharts.tsx # ReChart.js integration
 │   └── TopServ.tsx     # Top servers display
 ├── hooks/              # Custom React hooks
 │   └── useNotifications.ts # Notification management
+├── locales/            # Internationalization files
+│   ├── en/
+│   │   └── common.json # English translations
+│   └── fr/
+│       └── common.json # French translations
 ├── pages/              # Page components
 │   ├── Origin.tsx      # Main application page
 │   └── Terms.tsx       # Terms of service
+├── i18n.ts             # i18next configuration
 ├── utils.ts            # Utility functions
 └── main.tsx            # Application entry point
 ```
