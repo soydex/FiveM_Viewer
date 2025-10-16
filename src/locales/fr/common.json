@@ -1,4 +1,5 @@
 {
+  "PageTitle": "FiveM Viewer - Liste des joueurs en temps réel | Serveurs RP",
   "serverNotFound": "Serveur non trouvé",
   "serverLoaded": "Serveur chargé",
   "playersFound": "{{count}} Joueurs trouvés",
@@ -101,5 +102,6 @@
   "hoursAgo": "Il y a {{count}}h",
   "daysAgo": "Il y a {{count}}j",
   "noSearchResults": "Aucun résultat trouvé pour votre recherche.",
-  "clearSearch": "Effacer la recherche"
+  "clearSearch": "Effacer la recherche",
+  "SupportMe": "Soutenez-moi"
 }

@@ -34,6 +34,7 @@ import Footer from "../components/Footer";
 import TopServ from "../components/TopServ";
 import Mobile from "../components/Mobile";
 import LanguageSwitcher from "../components/LanguageSwitcher";
+import SupportMe from "../components/Support";
 
 const StatisticsCharts = lazy(() =>
   import("../components/StatisticsCharts").then((m) => ({
@@ -186,6 +187,7 @@ function StatisticsSkeleton() {
 
 function App() {
   const { t, i18n } = useTranslation("common");
+  document.title = t("PageTitle");
 
   const formatDate = useCallback(
     (date: Date) => {
@@ -577,6 +579,7 @@ function App() {
       <Mobile />
       <div className="hidden sm:block min-h-screen bg-zinc-50 text-gray-900 dark:bg-zinc-900 dark:text-white relative">
         {/* Header */}
+        <SupportMe />
         <header className="shadow-sm bg-white border-zinc-200 border-b dark:bg-zinc-800 dark:border-zinc-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">

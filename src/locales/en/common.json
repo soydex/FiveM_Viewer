@@ -1,4 +1,5 @@
 {
+  "PageTitle": "FiveM Server Players Viewer",
   "serverNotFound": "Server not found",
   "serverLoaded": "Server loaded",
   "playersFound": "{{count}} players found",
@@ -101,5 +102,6 @@
   "hoursAgo": "{{count}} hours ago",
   "daysAgo": "{{count}} days ago",
   "noSearchResults": "No results found for your search.",
-  "clearSearch": "Clear search"
+  "clearSearch": "Clear search",
+  "SupportMe": "Support Me"
 }
