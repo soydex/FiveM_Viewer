@@ -32,7 +32,7 @@ Feature requests are welcome! Please create an issue with:
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/soydex/fivem-viewer.git
+   git clone https://github.com/soydex/FiveM_Viewer.git
    cd fivem-viewer
    ```
 3. **Install dependencies**:

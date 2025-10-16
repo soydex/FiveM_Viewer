@@ -1,6 +1,8 @@
 import { Github, Twitter, HatGlasses, Mail } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Footer = () => {
+  const { t } = useTranslation('common');
   const currentYear = new Date().getFullYear();
 
   return (
@@ -76,7 +78,7 @@ const Footer = () => {
               Changelog
             </a>
             <a
-              href="https://github.com/soydex/fivem-viewer"
+              href="https://github.com/soydex/FiveM_Viewer"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-zinc-400 hover:text-white transition-colors"
@@ -135,10 +137,10 @@ const Footer = () => {
         {/* Bottom: Copyright */}
         <div className="border-t border-zinc-800 py-6 flex items-center justify-between">
           <p className="text-sm text-zinc-500 text-center sm:text-left">
-            © {currentYear} FiveM Viewer. Sous licence MIT.
+            © {currentYear} FiveM Viewer. {t('licensedUnderMIT')}
           </p>
           <p className="text-sm text-zinc-500 text-center sm:text-right">
-            Nous ne sommes pas affiliés à FiveM ou Cfx.re.
+            {t('notAffiliated')}
           </p>
         </div>
       </div>

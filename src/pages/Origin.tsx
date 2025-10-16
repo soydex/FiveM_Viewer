@@ -6,6 +6,7 @@ import {
   lazy,
   Suspense,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { NotificationContainer } from "../components/Notifications";
 import { useNotifications } from "../hooks/useNotifications";
 import {
@@ -26,10 +27,13 @@ import {
   ArrowUp,
   ArrowDown,
   Trash2,
+  Server,
+  Clock,
 } from "lucide-react";
 import Footer from "../components/Footer";
 import TopServ from "../components/TopServ";
 import Mobile from "../components/Mobile";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 const StatisticsCharts = lazy(() =>
   import("../components/StatisticsCharts").then((m) => ({
@@ -181,6 +185,25 @@ function StatisticsSkeleton() {
 }
 
 function App() {
+  const { t, i18n } = useTranslation("common");
+
+  const formatDate = useCallback(
+    (date: Date) => {
+      const now = new Date();
+      const diff = now.getTime() - date.getTime();
+      const hours = Math.floor(diff / 3600000);
+      const days = Math.floor(diff / (24 * 3600000));
+
+      if (hours < 1) return t("now");
+      if (hours < 24) return t("hoursAgo", { count: hours });
+      if (days < 7) return t("daysAgo", { count: days });
+      return date.toLocaleDateString(
+        i18n.language === "fr" ? "fr-FR" : "en-US"
+      );
+    },
+    [t, i18n.language]
+  );
+
   const loadFavoritesFromStorage = () => {
     try {
       const savedFavorites = localStorage.getItem("favorites");
@@ -200,8 +223,14 @@ function App() {
   const [serverInfo, setServerInfo] = useState<ServerInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [favorites, setFavorites] = useState<Player[]>(loadFavoritesFromStorage);
+  const [favorites, setFavorites] = useState<Player[]>(
+    loadFavoritesFromStorage
+  );
   const [serverHistory, setServerHistory] = useState<ServerHistory[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [serversHistoryHoveredId, setServersHistoryHoveredId] = useState<
+    string | null
+  >(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [sortField, setSortField] = useState<SortField>("id");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
@@ -230,7 +259,7 @@ function App() {
         const response = await fetch(
           `https://servers-frontend.fivem.net/api/servers/single/${serverIdToUse}`
         );
-        if (!response.ok) throw new Error("Serveur non trouvé");
+        if (!response.ok) throw new Error(t("serverNotFound"));
 
         const data = await response.json();
         const serverData = data.Data;
@@ -274,24 +303,24 @@ function App() {
 
         addNotification({
           type: "success",
-          title: "Serveur chargé",
-          message: `${
-            serverData?.clients || serverData?.players?.length || 0
-          } joueurs trouvés`,
+          title: t("serverLoaded"),
+          message: t("playersFound", {
+            count: serverData?.clients || serverData?.players?.length || 0,
+          }),
         });
       } catch (error) {
         console.error("Erreur lors de la récupération des données:", error);
         setServerInfo(null);
         addNotification({
           type: "error",
-          title: "Erreur",
-          message: "Impossible de charger les données du serveur",
+          title: t("error"),
+          message: t("unableToLoadServerData"),
         });
       } finally {
         setLoading(false);
       }
     },
-    [serverId, addNotification]
+    [serverId, addNotification, t]
   );
 
   const fetchTopServers = useCallback(async () => {
@@ -300,8 +329,7 @@ function App() {
       const response = await fetch(
         "https://servers-frontend.fivem.net/api/servers/top/fr/"
       );
-      if (!response.ok)
-        throw new Error("Impossible de charger les top serveurs");
+      if (!response.ok) throw new Error(t("unableToLoadTopServers"));
 
       const data: RawTopServer = await response.json();
       const serverData = data.Data?.Data;
@@ -345,13 +373,13 @@ function App() {
       console.error("Erreur lors de la récupération des top serveurs:", error);
       addNotification({
         type: "error",
-        title: "Erreur",
-        message: "Impossible de charger les top serveurs",
+        title: t("error"),
+        message: t("unableToLoadTopServers"),
       });
     } finally {
       setLoadingTopServers(false);
     }
-  }, [addNotification]);
+  }, [addNotification, t]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -464,13 +492,13 @@ function App() {
       fetchServerData();
       addNotification({
         type: "info",
-        title: "Rafraîchissement automatique",
-        message: "Les données du serveur ont été mises à jour.",
+        title: t("autoRefreshTitle"),
+        message: t("dataUpdated"),
       });
     }, 30000); // 30 secondes
 
     return () => clearInterval(interval);
-  }, [autoRefresh, serverId, loading, addNotification, fetchServerData]);
+  }, [autoRefresh, serverId, loading, addNotification, fetchServerData, t]);
 
   const filteredPlayers = useMemo(() => {
     if (!serverInfo?.players) return [];
@@ -524,20 +552,20 @@ function App() {
       if (isCurrentlyFavorite) {
         addNotification({
           type: "info",
-          title: "Favori retiré",
-          message: `<strong>${player.name}</strong> a été retiré des favoris`,
+          title: t("favoriteRemoved"),
+          message: t("removedFromFavorites", { name: player.name }),
         });
         setFavorites((prev) => prev.filter((fav) => fav.id !== player.id));
       } else {
         addNotification({
           type: "success",
-          title: "Favori ajouté",
-          message: `<strong>${player.name}</strong> a été ajouté aux favoris`,
+          title: t("favoriteAdded"),
+          message: t("addedToFavorites", { name: player.name }),
         });
         setFavorites((prev) => [...prev, player]);
       }
     },
-    [favorites, addNotification]
+    [favorites, addNotification, t]
   );
 
   const isPlayerFavorite = (playerId: number) => {
@@ -552,51 +580,54 @@ function App() {
         <header className="shadow-sm bg-white border-zinc-200 border-b dark:bg-zinc-800 dark:border-zinc-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 group cursor-pointer" onClick={() => window.location.href = '/'}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              x="0px"
-              y="0px"
-              width="100"
-              height="100"
-              viewBox="0 0 48 48"
-              className="text-white group-hover:text-purple-600 w-10 h-10 transition-colors"
-            >
-              <polygon
-                fill="CurrentColor"
-                points="5,45 9,34 21,22 15,45"
-              ></polygon>
-              <polygon
-                fill="CurrentColor"
-                points="25,18 33,45 43,45 32,12"
-              ></polygon>
-              <polygon
-                fill="CurrentColor"
-                points="16.059,14.164 20,3 28,3"
-              ></polygon>
-              <polygon
-                fill="CurrentColor"
-                points="10.731,29.002 23,17 23,15 11.58,26.667"
-              ></polygon>
-              <polygon
-                fill="CurrentColor"
-                points="15.142,16.429 13,22 29.724,5.725 28.818,3.178"
-              ></polygon>
-              <polygon
-                fill="CurrentColor"
-                points="23.932,14.055 24.377,15.626 30.941,9.178 30.385,7.702"
-              ></polygon>
-            </svg>
-            <h1 className="text-white font-semibold text-lg group-hover:text-purple-600 transition-colors">
-              FiveM Viewer
-            </h1>
-          </div>
+              <div
+                className="flex items-center gap-2 group cursor-pointer"
+                onClick={() => (window.location.href = "/")}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  x="0px"
+                  y="0px"
+                  width="100"
+                  height="100"
+                  viewBox="0 0 48 48"
+                  className="text-white group-hover:text-purple-600 w-10 h-10 transition-colors"
+                >
+                  <polygon
+                    fill="CurrentColor"
+                    points="5,45 9,34 21,22 15,45"
+                  ></polygon>
+                  <polygon
+                    fill="CurrentColor"
+                    points="25,18 33,45 43,45 32,12"
+                  ></polygon>
+                  <polygon
+                    fill="CurrentColor"
+                    points="16.059,14.164 20,3 28,3"
+                  ></polygon>
+                  <polygon
+                    fill="CurrentColor"
+                    points="10.731,29.002 23,17 23,15 11.58,26.667"
+                  ></polygon>
+                  <polygon
+                    fill="CurrentColor"
+                    points="15.142,16.429 13,22 29.724,5.725 28.818,3.178"
+                  ></polygon>
+                  <polygon
+                    fill="CurrentColor"
+                    points="23.932,14.055 24.377,15.626 30.941,9.178 30.385,7.702"
+                  ></polygon>
+                </svg>
+                <h1 className="text-white font-semibold text-lg group-hover:text-purple-600 transition-colors">
+                  FiveM Viewer
+                </h1>
+              </div>
 
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <input
                     type="text"
-                    placeholder="ID du serveur"
+                    placeholder={t("serverIdPlaceholder")}
                     value={serverId}
                     onChange={(e) => {
                       const newValue = e.target.value.trim();
@@ -610,12 +641,12 @@ function App() {
                   <button
                     onClick={() => fetchServerData()}
                     disabled={loading || !serverId.trim()}
-                    aria-label="Recharger les données du serveur"
-                    title="Recharger les données du serveur"
+                    aria-label={t("reloadServerData")}
+                    title={t("reloadServerData")}
                     className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     <Play className="w-4 h-4" />
-                    {loading ? "Chargement..." : "Recharger"}
+                    {loading ? t("loading") : t("reload")}
                   </button>
 
                   <button
@@ -627,16 +658,17 @@ function App() {
                     }`}
                     title={
                       autoRefresh
-                        ? "Désactiver l'actualisation automatique"
-                        : "Activer l'actualisation automatique"
+                        ? t("disableAutoRefresh")
+                        : t("enableAutoRefresh")
                     }
                   >
                     <RefreshCw
                       className={`w-4 h-4 ${autoRefresh ? "animate-spin" : ""}`}
                     />
-                    {autoRefresh ? "Auto ON" : "Auto OFF"}
+                    {autoRefresh ? t("autoOn") : t("autoOff")}
                   </button>
                 </div>
+                <LanguageSwitcher />
               </div>
             </div>
 
@@ -644,7 +676,10 @@ function App() {
               <div className="mt-4 space-y-2">
                 <div className="flex items-center space-x-4">
                   <div className="px-3 py-1 rounded-full text-sm bg-zinc-200 dark:bg-zinc-700">
-                    {serverInfo.currentPlayers}/{serverInfo.maxPlayers} joueurs
+                    {t("playersCount", {
+                      current: serverInfo.currentPlayers,
+                      max: serverInfo.maxPlayers,
+                    })}
                   </div>
                   <div className="flex items-center space-x-2">
                     {serverInfo.iconUrl && (
@@ -722,17 +757,17 @@ function App() {
                 {[
                   {
                     id: "players",
-                    label: "Joueurs",
+                    label: t("players"),
                     count: filteredPlayers.length,
                     icon: Users,
                   },
                   {
                     id: "favorites",
-                    label: "Favoris",
+                    label: t("favorites"),
                     count: favorites.length,
                     icon: Heart,
                   },
-                  { id: "statistics", label: "Statistiques", icon: BarChart3 },
+                  { id: "statistics", label: t("statistics"), icon: BarChart3 },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -766,66 +801,119 @@ function App() {
           ) : (
             currentTab === "players" && (
               <div className="flex flex-col gap-4">
-                {/* Menu déroulant historique */}
                 {serverHistory.length > 0 && (
                   <div className="relative">
-                    <div className="w-full rounded-lg shadow-lg border z-10 bg-white border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700">
-                      <div className="flex justify-between w-full items-center px-4 py-2 border-b border-zinc-200 text-gray-700 dark:border-zinc-700 dark:text-gray-300">
-                        Serveurs récents
-                        <button
-                          className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700"
-                          title="Historique des serveurs"
-                        >
-                          📋
-                        </button>
-                      </div>
-
-                      {serverHistory.map((server) => (
-                        <div key={server.id} className="relative group">
-                          <button
-                            onClick={() => {
-                              setServerId(server.id);
-                              fetchServerData(server.id);
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-700 pr-10"
-                          >
-                            <div className="font-medium truncate">
-                              {server.name}
+                    <button
+                      onClick={() => setShowHistory(!showHistory)}
+                      className="w-full group relative"
+                    >
+                      <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-zinc-800 dark:to-zinc-900 border border-purple-200 dark:border-zinc-600 hover:border-purple-300 dark:hover:border-zinc-500 transition-all duration-200 hover:shadow-md">
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                            <Clock className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                          </div>
+                          <div className="text-left">
+                            <div className="font-semibold text-sm text-gray-900 dark:text-white">
+                              {t("recentServers")}
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {server.id} •{" "}
-                              {new Date(
-                                server.lastVisited
-                              ).toLocaleDateString()}
+                              {serverHistory.length}{" "}
+                              {t("server", { count: serverHistory.length })}
                             </div>
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setServerHistory((prev) => {
-                                const updatedHistory = prev.filter(
-                                  (s) => s.id !== server.id
-                                );
-                                localStorage.setItem(
-                                  "serverHistory",
-                                  JSON.stringify(updatedHistory)
-                                );
-                                return updatedHistory;
-                              });
-                            }}
-                            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                            title="Supprimer de l'historique"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          </div>
                         </div>
-                      ))}
+                        <ChevronDown
+                          className={`w-5 h-5 text-purple-600 dark:text-purple-400 transition-transform duration-300 ${
+                            showHistory ? "rotate-180" : ""
+                          }`}
+                        />
+                      </div>
+                    </button>
+
+                    <div
+                      className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top z-50 ${
+                        showHistory
+                          ? "opacity-100 scale-y-100 pointer-events-auto"
+                          : "opacity-0 scale-y-95 pointer-events-none"
+                      }`}
+                    >
+                      <div className="max-h-96 overflow-y-auto">
+                        {serverHistory.map((server, index) => (
+                          <div
+                            key={server.id}
+                            onMouseEnter={() =>
+                              setServersHistoryHoveredId(server.id)
+                            }
+                            onMouseLeave={() =>
+                              setServersHistoryHoveredId(null)
+                            }
+                            className={`group relative transition-colors duration-150 ${
+                              index !== serverHistory.length - 1
+                                ? "border-b border-zinc-100 dark:border-zinc-700"
+                                : ""
+                            } ${
+                              serversHistoryHoveredId === server.id
+                                ? "bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-zinc-700/50"
+                                : "hover:bg-gradient-to-r hover:from-purple-25 hover:to-transparent dark:hover:from-zinc-700/30 dark:hover:to-transparent"
+                            }`}
+                          >
+                            <button
+                              onClick={() => {
+                                setServerId(server.id);
+                                fetchServerData(server.id);
+                                setShowHistory(false);
+                              }}
+                              className="w-full text-left px-4 py-3 transition-all duration-150"
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="p-2 bg-zinc-100 dark:bg-zinc-700 rounded-lg mt-0.5">
+                                  <Server className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-sm text-gray-900 dark:text-white truncate group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                                    {server.name}
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                                      {server.id}
+                                    </span>
+                                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                                      •
+                                    </span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                      {formatDate(new Date(server.lastVisited))}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setServerHistory((prev) => {
+                                      const updatedHistory = prev.filter(
+                                        (s) => s.id !== server.id
+                                      );
+                                      localStorage.setItem(
+                                        "serverHistory",
+                                        JSON.stringify(updatedHistory)
+                                      );
+                                      return updatedHistory;
+                                    });
+                                  }}
+                                  className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:text-zinc-500 dark:hover:text-zinc-300 dark:hover:bg-zinc-700 opacity-0 group-hover:opacity-100 transition-all duration-150 flex-shrink-0 cursor-pointer"
+                                  title={t("removeFromHistory")}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </div>
+                              </div>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
-
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold">Liste des joueurs</h2>
+                  <h2 className="text-xl font-semibold">{t("playerList")}</h2>
 
                   <div className="relative">
                     <button
@@ -837,9 +925,9 @@ function App() {
                     >
                       <ArrowUpDown className="w-4 h-4" />
                       <span className="text-sm">
-                        {sortField === "id" && "ID"}
-                        {sortField === "name" && "Nom"}
-                        {sortField === "ping" && "Ping"}
+                        {sortField === "id" && t("id")}
+                        {sortField === "name" && t("name")}
+                        {sortField === "ping" && t("ping")}
                         {sortOrder === "asc" ? " ↑" : " ↓"}
                       </span>
                       <ChevronDown className="w-4 h-4" />
@@ -878,7 +966,7 @@ function App() {
                           {/* Options d'ordre */}
                           <div className="border-t border-zinc-200 dark:border-zinc-600 pt-2">
                             <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 dark:text-gray-400">
-                              Ordre
+                              {t("order")}
                             </div>
                             <button
                               onClick={() => {
@@ -892,7 +980,7 @@ function App() {
                               }`}
                             >
                               <ArrowUp className="w-4 h-4" />
-                              Croissant
+                              {t("ascending")}
                             </button>
                             <button
                               onClick={() => {
@@ -906,7 +994,7 @@ function App() {
                               }`}
                             >
                               <ArrowDown className="w-4 h-4" />
-                              Décroissant
+                              {t("descending")}
                             </button>
                           </div>
                         </div>
@@ -932,22 +1020,22 @@ function App() {
                       <thead className="bg-zinc-50 dark:bg-zinc-800">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                            #
+                            {t("hash")}
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                            ID
+                            {t("id")}
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                            Nom
+                            {t("name")}
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                            Ping
+                            {t("ping")}
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                            Liens
+                            {t("links")}
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                            Actions
+                            {t("actions")}
                           </th>
                         </tr>
                       </thead>
@@ -1054,12 +1142,25 @@ function App() {
 
                       return displayedPlayersLimit < totalFilteredPlayers ? (
                         <div className="text-center py-4 text-sm text-gray-500 dark:text-gray-400">
-                          Affichage de {displayedPlayersLimit} sur{" "}
-                          {totalFilteredPlayers} joueurs. Faites défiler pour en
-                          voir plus.
+                          {t("displayingPlayers", {
+                            displayed: displayedPlayersLimit,
+                            total: totalFilteredPlayers,
+                          })}
                         </div>
                       ) : null;
                     })()}
+                  </div>
+                )}
+                {filteredPlayers.length === 0 && searchTerm.trim() !== "" && (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 m-0" >
+                    {t("noSearchResults")}
+                    <br />
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className="mt-2 px-4 py-2 text-purple-600 rounded-lg hover:text-purple-700 hover:underline"
+                    >
+                      {t("clearSearch")}
+                    </button>
                   </div>
                 )}
               </div>
@@ -1068,11 +1169,12 @@ function App() {
 
           {currentTab === "favorites" && (
             <div>
-              <h2 className="text-xl font-semibold mb-4">Joueurs favoris</h2>
+              <h2 className="text-xl font-semibold mb-4">
+                {t("favoritePlayers")}
+              </h2>
               {favorites.length === 0 ? (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                  Aucun joueur favori. Utilisez l'étoile ⭐ pour ajouter des
-                  favoris depuis l'onglet Joueurs.
+                  {t("noFavoritePlayers")}
                 </div>
               ) : (
                 <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
@@ -1140,12 +1242,14 @@ function App() {
 
           {currentTab === "statistics" && (
             <div>
-              <h2 className="text-xl font-semibold mb-4">Statistiques</h2>
+              <h2 className="text-xl font-semibold mb-4">
+                {t("statisticsTitle")}
+              </h2>
               {loading ? (
                 <StatisticsSkeleton />
               ) : !serverInfo ? (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                  Chargez un serveur pour voir les statistiques.
+                  {t("loadServerForStats")}
                 </div>
               ) : (
                 <Suspense fallback={<StatisticsSkeleton />}>
@@ -1155,13 +1259,13 @@ function App() {
             </div>
           )}
           <div className="fixed bottom-4 right-4 bg-white dark:bg-zinc-800 px-3 py-2 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 z-50 flex items-center gap-2">
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            Dernier rafraîchissement :{" "}
-            {lastRefreshTimestamp
-              ? new Date(lastRefreshTimestamp).toLocaleString()
-              : "Jamais"}
-          </span>
-        </div>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {t("lastRefresh")} :{" "}
+              {lastRefreshTimestamp
+                ? new Date(lastRefreshTimestamp).toLocaleString()
+                : t("never")}
+            </span>
+          </div>
         </main>
 
         <Footer />
@@ -1171,7 +1275,6 @@ function App() {
           notifications={notifications}
           onClose={removeNotification}
         />
-        
       </div>
     </>
   );

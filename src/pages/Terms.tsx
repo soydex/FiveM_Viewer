@@ -1,8 +1,10 @@
 import { ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Terms = () => {
-    document.title = "Conditions d'utilisation - FiveM Viewer";
-    document.body.style.backgroundColor = "#18181b";
+  const { t } = useTranslation('common');
+  document.title = `${t('termsTitle')} - FiveM Viewer`;
+  document.body.style.backgroundColor = "#18181b";
   return (
     <div className="min-h-screen bg-zinc-900 relative">
       <div className="fixed">
@@ -11,121 +13,91 @@ const Terms = () => {
           className="text-zinc-400 hover:text-white transition-colors p-6 flex items-center"
         >
           <ArrowLeft className="inline w-5 h-5" />
-          Retour
+          {t('back')}
 
         </a>
       </div>
       <div className="max-w-3xl mx-auto p-6">
         <h1 className="text-4xl font-bold text-zinc-300 mb-6 border-b border-zinc-700 pb-2">
-          Conditions d'utilisation
+          {t('termsTitle')}
         </h1>
         <p className="text-zinc-400 mb-4">
-          Bienvenue sur notre site web. En utilisant ce site, vous acceptez les
-          présentes conditions d'utilisation. Si vous n'acceptez pas ces
-          conditions, veuillez ne pas utiliser notre site.
+          {t('termsWelcome')}
         </p>
         <h2 className="text-2xl font-semibold text-zinc-300 mt-8 mb-4 border-b border-zinc-700 pb-2">
-          1. Utilisation du site
+          1. {t('termsSiteUsage')}
         </h2>
         <p className="text-zinc-400 mb-4">
-          Vous vous engagez à utiliser ce site conformément à la loi et aux
-          présentes conditions. Vous ne devez pas utiliser le site à des fins
-          illégales ou non autorisées.
+          {t('termsSiteUsageDesc')}
         </p>
                 <h2 className="text-2xl font-semibold text-zinc-300 mt-8 mb-4 border-b border-zinc-700 pb-2">
-          2. Propriété intellectuelle
+          2. {t('termsIntellectualProperty')}
         </h2>
         <p className="text-zinc-400 mb-4">
-          Tout le contenu de ce site, y compris les textes, images, logos, et
-          code source, est protégé par les droits d'auteur et autres droits de
-          propriété intellectuelle. Vous ne pouvez pas reproduire, distribuer
-          ou utiliser ce contenu sans autorisation préalable.
+          {t('termsIntellectualPropertyDesc')}
         </p>
         <h2 className="text-2xl font-semibold text-zinc-300 mt-8 mb-4 border-b border-zinc-700 pb-2">
-          3. Utilisation des données FiveM
+          3. {t('termsFiveMData')}
         </h2>
         <p className="text-zinc-400 mb-4">
-          Ce site utilise l'API publique de FiveM pour récupérer les
-          informations des serveurs. Nous ne sommes pas responsables de
-          l'exactitude, de la disponibilité ou de la mise à jour de ces données.
-          L'utilisation de ces données est soumise aux conditions d'utilisation
-          de FiveM.
+          {t('termsFiveMDataDesc')}
         </p>
         <h2 className="text-2xl font-semibold text-zinc-300 mt-8 mb-4 border-b border-zinc-700 pb-2">
-          3.1 Position concernant Rockstar Games
+          3.1 {t('termsRockstarPosition')}
         </h2>
         <p className="text-zinc-400 mb-4">
-          Ce site n'est pas affilié à Rockstar Games, Take-Two Interactive ou
-          FiveM. Nous ne distribuons aucun contenu protégé par des droits
-          d'auteur de Rockstar Games. Notre service se limite à l'affichage
-          d'informations publiques disponibles via l'API officielle de FiveM.
-          L'utilisation de ce site est à vos risques et périls.
+          {t('termsRockstarPositionDesc')}
         </p>
         <h2 className="text-2xl font-semibold text-zinc-300 mt-8 mb-4 border-b border-zinc-700 pb-2">
-          4. Responsabilités de l'utilisateur
+          4. {t('termsUserResponsibilities')}
         </h2>
         <p className="text-zinc-400 mb-4">
-          En utilisant ce site, vous vous engagez à :
+          {t('termsUserResponsibilitiesDesc')}
         </p>
         <ul className="text-zinc-400 mb-4 ml-6 list-disc">
-          <li>Ne pas utiliser le site pour des activités illégales</li>
-          <li>Respecter les droits des autres utilisateurs</li>
-          <li>Ne pas tenter de compromettre la sécurité du site</li>
-          <li>Fournir des informations exactes si nécessaire</li>
+          <li>{t('termsUserResp1')}</li>
+          <li>{t('termsUserResp2')}</li>
+          <li>{t('termsUserResp3')}</li>
+          <li>{t('termsUserResp4')}</li>
         </ul>
         <h2 className="text-2xl font-semibold text-zinc-300 mt-8 mb-4 border-b border-zinc-700 pb-2">
-          5. Limitation de responsabilité
+          5. {t('termsLiabilityLimitation')}
         </h2>
         <p className="text-zinc-400 mb-4">
-          Ce site est fourni "tel quel" sans garantie d'aucune sorte. Nous ne
-          pouvons être tenus responsables des dommages directs ou indirects
-          résultant de l'utilisation de ce site, y compris la perte de données
-          ou d'opportunités commerciales.
+          {t('termsLiabilityLimitationDesc')}
         </p>
         <h2 className="text-2xl font-semibold text-zinc-300 mt-8 mb-4 border-b border-zinc-700 pb-2">
-          6. Protection des données personnelles
+          6. {t('termsDataProtection')}
         </h2>
         <p className="text-zinc-400 mb-4">
-          Nous collectons uniquement les données nécessaires au fonctionnement
-          du site (préférences utilisateur, historique des serveurs consultés).
-          Ces données sont stockées localement dans votre navigateur et ne sont
-          pas transmises à des tiers sans votre consentement explicite.
+          {t('termsDataProtectionDesc')}
         </p>
         <h2 className="text-2xl font-semibold text-zinc-300 mt-8 mb-4 border-b border-zinc-700 pb-2">
-          7. Cookies et technologies similaires
+          7. {t('termsCookies')}
         </h2>
         <p className="text-zinc-400 mb-4">
-          Ce site utilise le stockage local du navigateur (localStorage) pour
-          sauvegarder vos préférences et votre historique. Aucune donnée n'est
-          collectée via des cookies tiers ou des technologies de traçage.
+          {t('termsCookiesDesc')}
         </p>
         <h2 className="text-2xl font-semibold text-zinc-300 mt-8 mb-4 border-b border-zinc-700 pb-2">
-          8. Modifications des conditions
+          8. {t('termsModifications')}
         </h2>
         <p className="text-zinc-400 mb-4">
-          Nous nous réservons le droit de modifier ces conditions à tout moment.
-          Les modifications prendront effet immédiatement après leur publication
-          sur le site. Votre utilisation continue du site constitue l'acceptation
-          des nouvelles conditions.
+          {t('termsModificationsDesc')}
         </p>
         <h2 className="text-2xl font-semibold text-zinc-300 mt-8 mb-4 border-b border-zinc-700 pb-2">
-          9. Droit applicable et juridiction
+          9. {t('termsApplicableLaw')}
         </h2>
         <p className="text-zinc-400 mb-4">
-          Ces conditions sont régies par le droit français. Tout litige relatif
-          à l'utilisation de ce site sera soumis à la compétence exclusive des
-          tribunaux français.
+          {t('termsApplicableLawDesc')}
         </p>
         <h2 className="text-2xl font-semibold text-zinc-300 mt-8 mb-4 border-b border-zinc-700 pb-2">
-          10. Contact
+          10. {t('termsContact')}
         </h2>
         <p className="text-zinc-400 mb-4">
-          Pour toute question concernant ces conditions d'utilisation, vous
-          pouvez nous contacter via les informations disponibles sur le site
-          ou les serveurs Discord associés.
+          {t('termsContactDesc')}
         </p>
         <p className="text-zinc-500 text-sm mt-8 italic">
-          Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')} from <a href="https://github.com/soydex" className="text-sm hover:font-large text-zinc-300 hover:text-zinc-400 font-medium transition" target="_blank">soydex</a>
+          {t('lastUpdated')} : {new Date().toLocaleDateString()} from <a href="https://github.com/soydex" className="text-sm hover:font-large text-zinc-300 hover:text-zinc-400 font-medium transition" target="_blank">soydex</a>
         </p>
       </div>
     </div>
