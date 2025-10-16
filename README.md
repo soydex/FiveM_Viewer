@@ -70,6 +70,27 @@ pnpm preview      # Preview production build
 pnpm lint         # ESLint checking
 ```
 
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+1. **Connect your GitHub repository** to Vercel
+2. **Deploy automatically** - Vercel will detect the Vite configuration
+3. **Custom domain** (optional) - Add your domain in Vercel settings
+
+The `vercel.json` file is configured for:
+- ✅ SPA routing support (React Router)
+- ✅ Security headers
+- ✅ Automatic deployments on push
+
+### Manual Deployment
+
+Build and deploy the `dist/` folder to any static hosting service:
+- Netlify
+- GitHub Pages
+- AWS S3 + CloudFront
+- Firebase Hosting
+
 ### Project Structure
 ```
 src/
