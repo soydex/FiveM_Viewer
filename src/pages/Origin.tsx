@@ -99,7 +99,7 @@ function PlayersTableSkeleton() {
   return (
     <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
       <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-        <thead className="bg-zinc-50 dark:bg-zinc-800">
+        <thead className="bg-zinc-50 dark:bg-zinc-900">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
               #
@@ -125,22 +125,22 @@ function PlayersTableSkeleton() {
           {Array.from({ length: 8 }).map((_, index) => (
             <tr key={index} className="animate-pulse">
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-6"></div>
+                <div className="h-4 bg-gray-200 dark:bg-zinc-900 rounded w-6"></div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-12"></div>
+                <div className="h-4 bg-gray-200 dark:bg-zinc-900 rounded w-12"></div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-32"></div>
+                <div className="h-4 bg-gray-200 dark:bg-zinc-900 rounded w-32"></div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-6 bg-gray-200 dark:bg-zinc-700 rounded-full w-16"></div>
+                <div className="h-6 bg-gray-200 dark:bg-zinc-900 rounded-full w-16"></div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-8"></div>
+                <div className="h-4 bg-gray-200 dark:bg-zinc-900 rounded w-8"></div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-5 w-5 bg-gray-200 dark:bg-zinc-700 rounded"></div>
+                <div className="h-5 w-5 bg-gray-200 dark:bg-zinc-900 rounded"></div>
               </td>
             </tr>
           ))}
@@ -154,11 +154,11 @@ function ServerInfoSkeleton() {
   return (
     <div className="mt-4 space-y-2 animate-pulse">
       <div className="flex items-center space-x-4">
-        <div className="px-3 py-1 rounded-full bg-gray-200 dark:bg-zinc-700 h-6 w-24"></div>
-        <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-48"></div>
+        <div className="px-3 py-1 rounded-full bg-gray-200 dark:bg-zinc-900 h-6 w-24"></div>
+        <div className="h-4 bg-gray-200 dark:bg-zinc-900 rounded w-48"></div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-64"></div>
+        <div className="h-4 bg-gray-200 dark:bg-zinc-900 rounded w-64"></div>
       </div>
     </div>
   );
@@ -167,19 +167,19 @@ function ServerInfoSkeleton() {
 function StatisticsSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div className="p-6 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700 animate-pulse">
+      <div className="p-6 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-900 dark:border-zinc-700 animate-pulse">
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-5 h-5 bg-gray-200 dark:bg-zinc-700 rounded"></div>
-          <div className="h-5 bg-gray-200 dark:bg-zinc-700 rounded w-32"></div>
+          <div className="w-5 h-5 bg-gray-200 dark:bg-zinc-900 rounded"></div>
+          <div className="h-5 bg-gray-200 dark:bg-zinc-900 rounded w-32"></div>
         </div>
-        <div className="h-64 bg-gray-200 dark:bg-zinc-700 rounded"></div>
+        <div className="h-64 bg-gray-200 dark:bg-zinc-900 rounded"></div>
       </div>
-      <div className="p-6 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700 animate-pulse">
+      <div className="p-6 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-900 dark:border-zinc-700 animate-pulse">
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-5 h-5 bg-gray-200 dark:bg-zinc-700 rounded"></div>
-          <div className="h-5 bg-gray-200 dark:bg-zinc-700 rounded w-32"></div>
+          <div className="w-5 h-5 bg-gray-200 dark:bg-zinc-900 rounded"></div>
+          <div className="h-5 bg-gray-200 dark:bg-zinc-900 rounded w-32"></div>
         </div>
-        <div className="h-64 bg-gray-200 dark:bg-zinc-700 rounded"></div>
+        <div className="h-64 bg-gray-200 dark:bg-zinc-900 rounded"></div>
       </div>
     </div>
   );
@@ -579,8 +579,7 @@ function App() {
       <Mobile />
       <div className="hidden sm:block min-h-screen bg-zinc-50 text-gray-900 dark:bg-zinc-900 dark:text-white relative">
         {/* Header */}
-        <SupportMe />
-        <header className="shadow-sm bg-white border-zinc-200 border-b dark:bg-zinc-800 dark:border-zinc-700">
+        <header className="shadow-sm bg-white border-zinc-200 border-b dark:bg-zinc-900 dark:border-zinc-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div
@@ -639,7 +638,7 @@ function App() {
                         fetchServerData(newValue);
                       }
                     }}
-                    className="px-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-700 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400"
+                    className="px-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-900 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400"
                   />
                   <button
                     onClick={() => fetchServerData()}
@@ -655,8 +654,8 @@ function App() {
                   <button
                     onClick={() => setAutoRefresh(!autoRefresh)}
                     className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${autoRefresh
-                        ? "bg-green-600 text-white hover:bg-green-700"
-                        : "bg-zinc-600 text-white hover:bg-zinc-700"
+                      ? "bg-green-600 text-white hover:bg-green-700"
+                      : "bg-zinc-900 text-white hover:bg-zinc-900"
                       }`}
                     title={
                       autoRefresh
@@ -677,7 +676,7 @@ function App() {
             {serverInfo && !loading && (
               <div className="mt-4 space-y-2">
                 <div className="flex items-center space-x-4">
-                  <div className="px-3 py-1 rounded-full text-sm bg-zinc-200 dark:bg-zinc-700">
+                  <div className="py-1 rounded-full text-sm bg-zinc-200 dark:bg-zinc-900">
                     {t("playersCount", {
                       current: serverInfo.currentPlayers,
                       max: serverInfo.maxPlayers,
@@ -753,7 +752,7 @@ function App() {
         </header>
 
         {serverInfo && (
-          <nav className="bg-white border-zinc-200 border-b dark:bg-zinc-800 dark:border-zinc-700">
+          <nav className="bg-white border-zinc-200 border-b dark:bg-zinc-900 dark:border-zinc-700">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex space-x-8">
                 {[
@@ -775,8 +774,8 @@ function App() {
                     key={tab.id}
                     onClick={() => setCurrentTab(tab.id as TabType)}
                     className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${currentTab === tab.id
-                        ? "border-purple-500 text-purple-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                      ? "border-purple-500 text-purple-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                       }`}
                   >
                     <tab.icon className="w-4 h-4" />
@@ -831,9 +830,9 @@ function App() {
                     </button>
 
                     <div
-                      className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top z-50 ${showHistory
-                          ? "opacity-100 scale-y-100 pointer-events-auto"
-                          : "opacity-0 scale-y-95 pointer-events-none"
+                      className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top z-50 ${showHistory
+                        ? "opacity-100 scale-y-100 pointer-events-auto"
+                        : "opacity-0 scale-y-95 pointer-events-none"
                         }`}
                     >
                       <div className="max-h-96 overflow-y-auto">
@@ -847,8 +846,8 @@ function App() {
                               setServersHistoryHoveredId(null)
                             }
                             className={`group relative transition-colors duration-150 ${index !== serverHistory.length - 1
-                                ? "border-b border-zinc-100 dark:border-zinc-700"
-                                : ""
+                              ? "border-b border-zinc-100 dark:border-zinc-700"
+                              : ""
                               } ${serversHistoryHoveredId === server.id
                                 ? "bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-zinc-700/50"
                                 : "hover:bg-gradient-to-r hover:from-purple-25 hover:to-transparent dark:hover:from-zinc-700/30 dark:hover:to-transparent"
@@ -863,7 +862,7 @@ function App() {
                               className="w-full text-left px-4 py-3 transition-all duration-150"
                             >
                               <div className="flex items-start gap-3">
-                                <div className="p-2 bg-zinc-100 dark:bg-zinc-700 rounded-lg mt-0.5">
+                                <div className="p-2 bg-zinc-100 dark:bg-zinc-900 rounded-lg mt-0.5">
                                   <Server className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -896,7 +895,7 @@ function App() {
                                       return updatedHistory;
                                     });
                                   }}
-                                  className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:text-zinc-500 dark:hover:text-zinc-300 dark:hover:bg-zinc-700 opacity-0 group-hover:opacity-100 transition-all duration-150 flex-shrink-0 cursor-pointer"
+                                  className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:text-zinc-500 dark:hover:text-zinc-300 dark:hover:bg-zinc-900 opacity-0 group-hover:opacity-100 transition-all duration-150 flex-shrink-0 cursor-pointer"
                                   title={t("removeFromHistory")}
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -918,7 +917,7 @@ function App() {
                         e.stopPropagation();
                         setShowSortDropdown(!showSortDropdown);
                       }}
-                      className="flex items-center gap-2 px-3 py-2 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-50 dark:bg-zinc-700 dark:border-zinc-600 dark:hover:bg-zinc-600"
+                      className="flex items-center gap-2 px-3 py-2 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-50 dark:bg-zinc-900 dark:border-zinc-600 dark:hover:bg-zinc-900"
                     >
                       <ArrowUpDown className="w-4 h-4" />
                       <span className="text-sm">
@@ -931,7 +930,7 @@ function App() {
                     </button>
 
                     {showSortDropdown && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white border border-zinc-300 rounded-lg shadow-lg z-10 dark:bg-zinc-800 dark:border-zinc-600">
+                      <div className="absolute right-0 mt-2 w-48 bg-white border border-zinc-300 rounded-lg shadow-lg z-10 dark:bg-zinc-900 dark:border-zinc-600">
                         <div className="p-2">
                           {/* Options de tri par champ */}
                           <div className="mb-2">
@@ -949,9 +948,9 @@ function App() {
                                   setSortField(option.field);
                                   setShowSortDropdown(false);
                                 }}
-                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 ${sortField === option.field
-                                    ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                                    : "text-gray-700 dark:text-gray-300"
+                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-900 ${sortField === option.field
+                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                  : "text-gray-700 dark:text-gray-300"
                                   }`}
                               >
                                 {option.label}
@@ -969,9 +968,9 @@ function App() {
                                 setSortOrder("asc");
                                 setShowSortDropdown(false);
                               }}
-                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2 ${sortOrder === "asc"
-                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                                  : "text-gray-700 dark:text-gray-300"
+                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-900 flex items-center gap-2 ${sortOrder === "asc"
+                                ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                : "text-gray-700 dark:text-gray-300"
                                 }`}
                             >
                               <ArrowUp className="w-4 h-4" />
@@ -982,9 +981,9 @@ function App() {
                                 setSortOrder("desc");
                                 setShowSortDropdown(false);
                               }}
-                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2 ${sortOrder === "desc"
-                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                                  : "text-gray-700 dark:text-gray-300"
+                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-900 flex items-center gap-2 ${sortOrder === "desc"
+                                ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                : "text-gray-700 dark:text-gray-300"
                                 }`}
                             >
                               <ArrowDown className="w-4 h-4" />
@@ -1003,7 +1002,7 @@ function App() {
                     placeholder="Rechercher un joueur..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400 w-full ring-1 ring-transparent focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    className="pl-10 pr-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-900 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400 w-full ring-1 ring-transparent focus:ring-purple-500 focus:border-purple-500 transition-all"
                   />
                 </div>
                 {loading ? (
@@ -1011,7 +1010,7 @@ function App() {
                 ) : (
                   <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
                     <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-                      <thead className="bg-zinc-50 dark:bg-zinc-800">
+                      <thead className="bg-zinc-50 dark:bg-zinc-900">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                             {t("hash")}
@@ -1041,7 +1040,7 @@ function App() {
                           return (
                             <tr
                               key={player.id}
-                              className="hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                              className="hover:bg-zinc-50 dark:hover:bg-zinc-900"
                             >
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 {index + 1}
@@ -1055,10 +1054,10 @@ function App() {
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 <span
                                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${player.ping < 50
-                                      ? "bg-green-100 text-green-800"
-                                      : player.ping < 100
-                                        ? "bg-yellow-100 text-yellow-800"
-                                        : "bg-red-100 text-red-800"
+                                    ? "bg-green-100 text-green-800"
+                                    : player.ping < 100
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-red-100 text-red-800"
                                     }`}
                                 >
                                   {player.ping}ms
@@ -1098,8 +1097,8 @@ function App() {
                                 <button
                                   onClick={() => toggleFavorite(player)}
                                   className={`p-1 rounded ${isPlayerFavorite(player.id)
-                                      ? "text-yellow-500 hover:text-yellow-600"
-                                      : "text-gray-400 hover:text-gray-500"
+                                    ? "text-yellow-500 hover:text-yellow-600"
+                                    : "text-gray-400 hover:text-gray-500"
                                     }`}
                                   title={
                                     isPlayerFavorite(player.id)
@@ -1171,7 +1170,7 @@ function App() {
               ) : (
                 <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
                   <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-                    <thead className="bg-zinc-50 dark:bg-zinc-800">
+                    <thead className="bg-zinc-50 dark:bg-zinc-900">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                           ID
@@ -1195,7 +1194,7 @@ function App() {
                         return (
                           <tr
                             key={player.id}
-                            className="hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                            className="hover:bg-zinc-50 dark:hover:bg-zinc-900"
                           >
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-mono">
                               {player.id}
@@ -1206,8 +1205,8 @@ function App() {
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <span
                                 className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${isOnline
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-zinc-100 text-gray-800"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-zinc-100 text-gray-800"
                                   }`}
                               >
                                 {isOnline ? "En ligne" : "Hors ligne"}
@@ -1249,7 +1248,7 @@ function App() {
               )}
             </div>
           )}
-          <div className="fixed bottom-4 right-4 bg-white dark:bg-zinc-800 px-3 py-2 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 z-50 flex items-center gap-2">
+          <div className="fixed bottom-4 right-4 bg-white dark:bg-zinc-900 px-3 py-2 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 z-50 flex items-center gap-2">
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {t("lastRefresh")} :{" "}
               {lastRefreshTimestamp

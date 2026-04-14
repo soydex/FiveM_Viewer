@@ -8,7 +8,7 @@ const Mobile = () => {
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-red-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
-      
+
       {/* Content card */}
       <div className="relative z-10 max-w-md w-full">
         <div className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-800/50 rounded-3xl p-8 shadow-2xl">
@@ -19,17 +19,17 @@ const Mobile = () => {
               <Smartphone className="w-10 h-10 text-white" strokeWidth={2.5} />
             </div>
           </div>
-          
+
           {/* Title */}
           <h1 className="text-2xl font-bold text-white text-center mb-3 tracking-tight">
             Appareil non compatible
           </h1>
-          
+
           {/* Description */}
           <p className="text-zinc-400 text-center mb-6 leading-relaxed">
             Cette fonctionnalité n'est pas disponible sur votre appareil mobile.
           </p>
-          
+
           {/* Info box */}
           <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-4 mb-6">
             <div className="flex items-start gap-3">
@@ -39,19 +39,19 @@ const Mobile = () => {
               </p>
             </div>
           </div>
-          
+
           {/* Suggestion */}
           <div className="text-center">
             <p className="text-sm text-zinc-500 mb-4">
               Pour accéder à cette fonctionnalité :
             </p>
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800/50 rounded-full border border-zinc-700/50">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900/50 rounded-full border border-zinc-700/50">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-zinc-300">Utilisez un ordinateur</span>
             </div>
           </div>
         </div>
-        
+
         {/* Footer note */}
         <p className="text-center text-xs text-zinc-600 mt-6">
           Restriction technique imposée par l'API FiveM

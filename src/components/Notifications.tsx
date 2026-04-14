@@ -40,7 +40,7 @@ function NotificationToast({ notification, onClose }: NotificationToastProps) {
   };
 
   const getColors = (type: NotificationType) => {
-    const baseClasses = 'bg-white border-zinc-200 text-gray-900 dark:bg-zinc-800/80 dark:border-zinc-700 dark:text-white';
+    const baseClasses = 'bg-white border-zinc-200 text-gray-900 dark:bg-zinc-900/80 dark:border-zinc-700 dark:text-white';
 
     switch (type) {
       case 'success':

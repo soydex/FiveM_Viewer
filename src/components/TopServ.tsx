@@ -22,12 +22,12 @@ const TopServ = ({ topServers, loading, onSelectServer }: TopServProps) => {
           Top Serveurs Français
         </h2>
         {Array.from({ length: 5 }).map((_, index) => (
-          <div key={index} className="p-4 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700 animate-pulse">
+          <div key={index} className="p-4 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-900 dark:border-zinc-700 animate-pulse">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gray-200 dark:bg-zinc-700 rounded"></div>
+              <div className="w-12 h-12 bg-gray-200 dark:bg-zinc-900 rounded"></div>
               <div className="flex-1">
-                <div className="h-5 bg-gray-200 dark:bg-zinc-700 rounded w-48 mb-2"></div>
-                <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-24"></div>
+                <div className="h-5 bg-gray-200 dark:bg-zinc-900 rounded w-48 mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-zinc-900 rounded w-24"></div>
               </div>
             </div>
           </div>
@@ -49,7 +49,7 @@ const TopServ = ({ topServers, loading, onSelectServer }: TopServProps) => {
           <div
             key={server.id}
             onClick={() => onSelectServer(server.id)}
-            className="p-4 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 cursor-pointer transition-colors"
+            className="p-4 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-900 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors"
           >
             <div className="flex items-center space-x-4">
               {server.iconUrl && (
