@@ -1,8 +1,10 @@
-import { useTranslation } from "react-i18next";
+"use client";
+
+import { useLocale } from "next-intl";
 import { ChevronDown } from "lucide-react";
 
 const LanguageSwitcher = () => {
-  const { i18n } = useTranslation("common");
+  const locale = useLocale();
 
   const languages = [
     { code: "fr", name: "🇫🇷" },
@@ -10,15 +12,16 @@ const LanguageSwitcher = () => {
   ];
 
   const handleLanguageChange = (lang: string) => {
-    i18n.changeLanguage(lang);
+    document.cookie = `NEXT_LOCALE=${lang}; path=/; max-age=31536000; SameSite=Lax`;
+    window.location.reload();
   };
 
   return (
     <div className="relative">
       <select
-        value={i18n.language}
+        value={locale}
         onChange={(e) => handleLanguageChange(e.target.value)}
-        className="appearance-none bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 rounded-md px-3 py-1 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="appearance-none bg-zinc-100 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-600 rounded-md px-3 py-1 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         {languages.map((lang) => (
           <option key={lang.code} value={lang.code}>

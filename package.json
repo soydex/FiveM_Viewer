@@ -1,38 +1,41 @@
 {
   "name": "fivem-viewer",
+  "version": "0.1.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check",
+    "format": "biome format --write"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.2.1",
-    "i18next": "^25.8.13",
-    "i18next-browser-languagedetector": "^8.2.1",
-    "lucide-react": "^0.575.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-i18next": "^16.5.4",
-    "react-router-dom": "^7.13.1",
-    "recharts": "^3.7.0",
-    "tailwindcss": "^4.2.1"
+    "lucide-react": "0.470.0",
+    "next": "16.2.4",
+    "next-intl": "^3.26.5",
+    "next-themes": "^0.4.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-i18next": "^17.0.3",
+    "recharts": "^3.8.1",
+    "swr": "^2.4.1"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@types/node": "^25.3.3",
+    "@biomejs/biome": "2.2.0",
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "^20.19.39",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.4",
-    "eslint": "^10.0.2",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.5.2",
-    "globals": "^17.4.0",
-    "typescript": "~5.9.3",
-    "typescript-eslint": "^8.56.1",
-    "vite": "^7.3.1"
-  }
+    "babel-plugin-react-compiler": "1.0.0",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.9.3"
+  },
+  "ignoreScripts": [
+    "sharp",
+    "unrs-resolver"
+  ],
+  "trustedDependencies": [
+    "sharp",
+    "unrs-resolver"
+  ]
 }

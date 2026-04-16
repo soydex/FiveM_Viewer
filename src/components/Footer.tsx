@@ -1,8 +1,8 @@
-import { Github, Twitter, HatGlasses, Mail } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { Github, Twitter, Glasses, Mail } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 const Footer = () => {
-  const { t } = useTranslation('common');
+  const t = useTranslations("common");
   const currentYear = new Date().getFullYear();
 
   return (
@@ -13,6 +13,8 @@ const Footer = () => {
           {/* Left: Brand */}
           <div className="flex items-center gap-2 group">
             <svg
+              aria-label="FiveM Viewer"
+              role="img"
               xmlns="http://www.w3.org/2000/svg"
               x="0px"
               y="0px"
@@ -122,7 +124,7 @@ const Footer = () => {
               className="text-zinc-400 hover:text-blue-500 transition-colors"
               aria-label="Portfolio"
             >
-              <HatGlasses className="w-5 h-5" />
+              <Glasses className="w-5 h-5" />
             </a>
             <a
               href="mailto:soydexdev@proton.me"
@@ -137,10 +139,10 @@ const Footer = () => {
         {/* Bottom: Copyright */}
         <div className="border-t border-zinc-800 py-6 flex items-center justify-between">
           <p className="text-sm text-zinc-500 text-center sm:text-left">
-            © {currentYear} FiveM Viewer. {t('licensedUnderMIT')}
+            © {currentYear} FiveM Viewer. {t("licensedUnderMIT")}
           </p>
           <p className="text-sm text-zinc-500 text-center sm:text-right">
-            {t('notAffiliated')}
+            {t("notAffiliated")}
           </p>
         </div>
       </div>

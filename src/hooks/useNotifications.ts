@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-export type NotificationType = 'success' | 'error' | 'warning' | 'info';
+export type NotificationType = "success" | "error" | "warning" | "info";
 
 export interface Notification {
   id: string;
@@ -14,17 +14,17 @@ export interface Notification {
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  const addNotification = (notification: Omit<Notification, 'id'>) => {
+  const addNotification = (notification: Omit<Notification, "id">) => {
     const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
     const newNotification: Notification = { ...notification, id };
 
-    setNotifications(prev => [...prev, newNotification]);
+    setNotifications((prev) => [...prev, newNotification]);
 
     return id;
   };
 
   const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
   const clearAll = () => {
@@ -35,6 +35,6 @@ export function useNotifications() {
     notifications,
     addNotification,
     removeNotification,
-    clearAll
+    clearAll,
   };
 }

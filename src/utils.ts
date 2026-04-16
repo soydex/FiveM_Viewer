@@ -12,7 +12,7 @@ export function cleanFiveMColors(text: string): string {
  * Extracts Discord information from server variables
  */
 export function extractDiscordLink(
-  vars: Record<string, unknown>
+  vars: Record<string, unknown>,
 ): string | undefined {
   if (!vars?.Discord || typeof vars.Discord !== "string") return undefined;
 
@@ -35,7 +35,7 @@ export function extractSocialLinks(identifiers: string[]): {
     if (id.startsWith("steam:")) {
       const steamId = id.replace("steam:", "");
       links.steam = `https://steamcommunity.com/profiles/${BigInt(
-        "0x" + steamId
+        "0x" + steamId,
       ).toString()}`;
     } else if (id.startsWith("discord:")) {
       const discordId = id.replace("discord:", "");

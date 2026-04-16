@@ -1,19 +1,16 @@
-import {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  lazy,
-  Suspense,
-} from "react";
-import { useTranslation } from "react-i18next";
-import { NotificationContainer } from "../components/Notifications";
-import { useNotifications } from "../hooks/useNotifications";
+"use client";
+
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import dynamic from "next/dynamic";
+import { useTranslations, useLocale } from "next-intl";
+import { NotificationContainer } from "../../components/Notifications";
+import { useNotifications } from "../../hooks/useNotifications";
 import {
   cleanFiveMColors,
   extractDiscordLink,
   extractSocialLinks,
-} from "../utils";
+} from "../../utils";
+import useSWR from "swr";
 import {
   Users,
   Heart,
@@ -30,16 +27,15 @@ import {
   Server,
   Clock,
 } from "lucide-react";
-import Footer from "../components/Footer";
-import TopServ from "../components/TopServ";
-import Mobile from "../components/Mobile";
-import LanguageSwitcher from "../components/LanguageSwitcher";
-import SupportMe from "../components/Support";
+import Footer from "../../components/Footer";
+import TopServ from "../../components/TopServ";
+import Mobile from "../../components/Mobile";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
 
-const StatisticsCharts = lazy(() =>
-  import("../components/StatisticsCharts").then((m) => ({
-    default: m.StatisticsCharts,
-  }))
+const StatisticsCharts = dynamic(
+  () =>
+    import("../../components/StatisticsCharts").then((m) => m.StatisticsCharts),
+  { ssr: false, loading: () => <StatisticsSkeleton /> },
 );
 
 interface Player {
@@ -99,7 +95,7 @@ function PlayersTableSkeleton() {
   return (
     <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
       <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-        <thead className="bg-zinc-50 dark:bg-zinc-900">
+        <thead className="bg-zinc-50 dark:bg-zinc-950">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
               #
@@ -121,26 +117,26 @@ function PlayersTableSkeleton() {
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white dark:bg-zinc-900 divide-y divide-zinc-200 dark:divide-zinc-700">
+        <tbody className="bg-white dark:bg-zinc-950 divide-y divide-zinc-200 dark:divide-zinc-700">
           {Array.from({ length: 8 }).map((_, index) => (
             <tr key={index} className="animate-pulse">
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 dark:bg-zinc-900 rounded w-6"></div>
+                <div className="h-4 bg-gray-200 dark:bg-zinc-950 rounded w-6"></div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 dark:bg-zinc-900 rounded w-12"></div>
+                <div className="h-4 bg-gray-200 dark:bg-zinc-950 rounded w-12"></div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 dark:bg-zinc-900 rounded w-32"></div>
+                <div className="h-4 bg-gray-200 dark:bg-zinc-950 rounded w-32"></div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-6 bg-gray-200 dark:bg-zinc-900 rounded-full w-16"></div>
+                <div className="h-6 bg-gray-200 dark:bg-zinc-950 rounded-full w-16"></div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 dark:bg-zinc-900 rounded w-8"></div>
+                <div className="h-4 bg-gray-200 dark:bg-zinc-950 rounded w-8"></div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-5 w-5 bg-gray-200 dark:bg-zinc-900 rounded"></div>
+                <div className="h-5 w-5 bg-gray-200 dark:bg-zinc-950 rounded"></div>
               </td>
             </tr>
           ))}
@@ -154,11 +150,11 @@ function ServerInfoSkeleton() {
   return (
     <div className="mt-4 space-y-2 animate-pulse">
       <div className="flex items-center space-x-4">
-        <div className="px-3 py-1 rounded-full bg-gray-200 dark:bg-zinc-900 h-6 w-24"></div>
-        <div className="h-4 bg-gray-200 dark:bg-zinc-900 rounded w-48"></div>
+        <div className="px-3 py-1 rounded-full bg-gray-200 dark:bg-zinc-950 h-6 w-24"></div>
+        <div className="h-4 bg-gray-200 dark:bg-zinc-950 rounded w-48"></div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="h-4 bg-gray-200 dark:bg-zinc-900 rounded w-64"></div>
+        <div className="h-4 bg-gray-200 dark:bg-zinc-950 rounded w-64"></div>
       </div>
     </div>
   );
@@ -167,27 +163,27 @@ function ServerInfoSkeleton() {
 function StatisticsSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div className="p-6 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-900 dark:border-zinc-700 animate-pulse">
+      <div className="p-6 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-950 dark:border-zinc-700 animate-pulse">
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-5 h-5 bg-gray-200 dark:bg-zinc-900 rounded"></div>
-          <div className="h-5 bg-gray-200 dark:bg-zinc-900 rounded w-32"></div>
+          <div className="w-5 h-5 bg-gray-200 dark:bg-zinc-950 rounded"></div>
+          <div className="h-5 bg-gray-200 dark:bg-zinc-950 rounded w-32"></div>
         </div>
-        <div className="h-64 bg-gray-200 dark:bg-zinc-900 rounded"></div>
+        <div className="h-64 bg-gray-200 dark:bg-zinc-950 rounded"></div>
       </div>
-      <div className="p-6 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-900 dark:border-zinc-700 animate-pulse">
+      <div className="p-6 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-950 dark:border-zinc-700 animate-pulse">
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-5 h-5 bg-gray-200 dark:bg-zinc-900 rounded"></div>
-          <div className="h-5 bg-gray-200 dark:bg-zinc-900 rounded w-32"></div>
+          <div className="w-5 h-5 bg-gray-200 dark:bg-zinc-950 rounded"></div>
+          <div className="h-5 bg-gray-200 dark:bg-zinc-950 rounded w-32"></div>
         </div>
-        <div className="h-64 bg-gray-200 dark:bg-zinc-900 rounded"></div>
+        <div className="h-64 bg-gray-200 dark:bg-zinc-950 rounded"></div>
       </div>
     </div>
   );
 }
 
 function App() {
-  const { t, i18n } = useTranslation("common");
-  document.title = t("PageTitle");
+  const t = useTranslations("common");
+  const locale = useLocale();
 
   const formatDate = useCallback(
     (date: Date) => {
@@ -199,11 +195,9 @@ function App() {
       if (hours < 1) return t("now");
       if (hours < 24) return t("hoursAgo", { count: hours });
       if (days < 7) return t("daysAgo", { count: days });
-      return date.toLocaleDateString(
-        i18n.language === "fr" ? "fr-FR" : "en-US"
-      );
+      return date.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US");
     },
-    [t, i18n.language]
+    [t, locale],
   );
 
   const loadFavoritesFromStorage = () => {
@@ -226,7 +220,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [favorites, setFavorites] = useState<Player[]>(
-    loadFavoritesFromStorage
+    loadFavoritesFromStorage,
   );
   const [serverHistory, setServerHistory] = useState<ServerHistory[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -241,14 +235,16 @@ function App() {
     number | null
   >(null);
   const [displayedPlayersLimit, setDisplayedPlayersLimit] = useState(50);
-  const [topServers, setTopServers] = useState<TopServer[]>([]);
-  const [loadingTopServers, setLoadingTopServers] = useState(false);
+  // const [topServers, setTopServers] = useState<TopServer[]>([]);
+  // const [loadingTopServers, setLoadingTopServers] = useState(false);
 
   const { notifications, addNotification, removeNotification } =
     useNotifications();
 
-  useEffect(() => {
-    document.documentElement.classList.add("dark");
+  const fetcher = useCallback(async (url: string) => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Erreur");
+    return res.json();
   }, []);
 
   const fetchServerData = useCallback(
@@ -259,7 +255,7 @@ function App() {
       setLoading(true);
       try {
         const response = await fetch(
-          `/api/fivem/servers/single/${serverIdToUse}`
+          `/api/fivem/servers/single/${serverIdToUse}`,
         );
         if (!response.ok) throw new Error(t("serverNotFound"));
 
@@ -269,7 +265,7 @@ function App() {
         setServerInfo({
           id: serverIdToUse,
           name: cleanFiveMColors(
-            serverData?.hostname || `Serveur ${serverIdToUse}`
+            serverData?.hostname || `Serveur ${serverIdToUse}`,
           ),
           players: serverData?.players || [],
           maxPlayers: serverData?.sv_maxclients || 0,
@@ -293,7 +289,7 @@ function App() {
             {
               id: serverIdToUse,
               name: cleanFiveMColors(
-                serverData?.hostname || `Serveur ${serverIdToUse}`
+                serverData?.hostname || `Serveur ${serverIdToUse}`,
               ),
               lastVisited: Date.now(),
             },
@@ -322,66 +318,72 @@ function App() {
         setLoading(false);
       }
     },
-    [serverId, addNotification, t]
+    [serverId, addNotification, t],
   );
 
-  const fetchTopServers = useCallback(async () => {
-    setLoadingTopServers(true);
-    try {
-      const response = await fetch(
-        "/api/fivem/servers/top/fr/"
-      );
-      if (!response.ok) throw new Error(t("unableToLoadTopServers"));
+  const {
+    data: topServersRawData,
+    isLoading: loadingTopServers,
+    error: topServersError,
+  } = useSWR(!serverId.trim() ? "/api/fivem/servers/top/fr/" : null, fetcher);
 
-      const data: RawTopServer = await response.json();
-      const serverData = data.Data?.Data;
-      const topServer: TopServer = {
-        id: data.EP || data.Data?.EndPoint || "",
-        name: cleanFiveMColors(serverData?.hostname || `Serveur ${data.EP}`),
-        currentPlayers: serverData?.clients || 0,
-        maxPlayers: serverData?.sv_maxclients || 0,
-        iconUrl: serverData?.iconVersion
-          ? `https://servers-live.fivem.net/servers/icon/${data.EP}/${serverData.iconVersion}.png`
-          : serverData?.vars?.banner_detail ||
-          `/api/fivem/servers/icon/${data.EP}`,
-      };
+  const topServers = useMemo(() => {
+    if (!topServersRawData) return [];
 
-      const topServersData: TopServer[] = [
-        topServer,
-        {
-          id: "4r3dp",
-          name: "Los Santos Life",
-          currentPlayers: 120,
-          maxPlayers: 512,
-          iconUrl: "/api/fivem/servers/icon/4r3dp",
-        },
-        {
-          id: "9k8z2b",
-          name: "FrenchRP",
-          currentPlayers: 89,
-          maxPlayers: 256,
-          iconUrl: "/api/fivem/servers/icon/9k8z2b",
-        },
-        {
-          id: "n5x7m",
-          name: "Paris RP",
-          currentPlayers: 67,
-          maxPlayers: 128,
-          iconUrl: "/api/fivem/servers/icon/n5x7m",
-        },
-      ];
-      setTopServers(topServersData);
-    } catch (error) {
-      console.error("Erreur lors de la récupération des top serveurs:", error);
+    const data = topServersRawData;
+    const serverData = data.Data?.Data;
+    const topServer: TopServer = {
+      id: data.EP || data.Data?.EndPoint || "",
+      name: cleanFiveMColors(serverData?.hostname || `Serveur ${data.EP}`),
+      currentPlayers: serverData?.clients || 0,
+      maxPlayers: serverData?.sv_maxclients || 0,
+      iconUrl: serverData?.iconVersion
+        ? `https://servers-live.fivem.net/servers/icon/${data.EP}/${serverData.iconVersion}.png`
+        : serverData?.vars?.banner_detail ||
+        `/api/fivem/servers/icon/${data.EP}`,
+    };
+
+    return [
+      topServer,
+      {
+        id: "4r3dp",
+        name: "Los Santos Life",
+        currentPlayers: 120,
+        maxPlayers: 512,
+        iconUrl: "/api/fivem/servers/icon/4r3dp",
+      },
+      {
+        id: "9k8z2b",
+        name: "FrenchRP",
+        currentPlayers: 89,
+        maxPlayers: 256,
+        iconUrl: "/api/fivem/servers/icon/9k8z2b",
+      },
+      {
+        id: "n5x7m",
+        name: "Paris RP",
+        currentPlayers: 67,
+        maxPlayers: 128,
+        iconUrl: "/api/fivem/servers/icon/n5x7m",
+      },
+    ];
+  }, [topServersRawData]);
+
+  const [hasNotifiedError, setHasNotifiedError] = useState(false);
+
+  useEffect(() => {
+    if (topServersError && !hasNotifiedError) {
+      console.error("Erreur SWR top serveurs:", topServersError);
       addNotification({
         type: "error",
         title: t("error"),
         message: t("unableToLoadTopServers"),
       });
-    } finally {
-      setLoadingTopServers(false);
+      setHasNotifiedError(true);
+    } else if (!topServersError && hasNotifiedError) {
+      setHasNotifiedError(false);
     }
-  }, [addNotification, t]);
+  }, [topServersError, hasNotifiedError, addNotification, t]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -400,8 +402,6 @@ function App() {
     if (serverIdToLoad) {
       setServerId(serverIdToLoad);
       fetchServerData(serverIdToLoad);
-    } else {
-      fetchTopServers();
     }
 
     if (searchParam) {
@@ -472,7 +472,7 @@ function App() {
               (player) =>
                 player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 player.id.toString().includes(searchTerm) ||
-                player.identifiers?.some((id) => id.includes(searchTerm))
+                player.identifiers?.some((id) => id.includes(searchTerm)),
             ).length || 0;
           return Math.min(newLimit, filteredCount);
         });
@@ -509,7 +509,7 @@ function App() {
       (player) =>
         player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         player.id.toString().includes(searchTerm) ||
-        player.identifiers?.some((id) => id.includes(searchTerm))
+        player.identifiers?.some((id) => id.includes(searchTerm)),
     );
 
     filtered.sort((a, b) => {
@@ -567,7 +567,7 @@ function App() {
         setFavorites((prev) => [...prev, player]);
       }
     },
-    [favorites, addNotification, t]
+    [favorites, addNotification, t],
   );
 
   const isPlayerFavorite = (playerId: number) => {
@@ -577,9 +577,9 @@ function App() {
   return (
     <>
       <Mobile />
-      <div className="hidden sm:block min-h-screen bg-zinc-50 text-gray-900 dark:bg-zinc-900 dark:text-white relative">
+      <div className="hidden sm:block min-h-screen bg-zinc-50 text-gray-900 dark:bg-zinc-950 dark:text-white relative">
         {/* Header */}
-        <header className="shadow-sm bg-white border-zinc-200 border-b dark:bg-zinc-900 dark:border-zinc-700">
+        <header className="shadow-sm bg-white dark:bg-zinc-950">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div
@@ -638,7 +638,7 @@ function App() {
                         fetchServerData(newValue);
                       }
                     }}
-                    className="px-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-900 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400"
+                    className="px-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-950 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400"
                   />
                   <button
                     onClick={() => fetchServerData()}
@@ -654,8 +654,8 @@ function App() {
                   <button
                     onClick={() => setAutoRefresh(!autoRefresh)}
                     className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${autoRefresh
-                      ? "bg-green-600 text-white hover:bg-green-700"
-                      : "bg-zinc-900 text-white hover:bg-zinc-900"
+                        ? "bg-green-600 text-white hover:bg-green-700"
+                        : "bg-zinc-950 text-white hover:bg-zinc-950"
                       }`}
                     title={
                       autoRefresh
@@ -676,7 +676,7 @@ function App() {
             {serverInfo && !loading && (
               <div className="mt-4 space-y-2">
                 <div className="flex items-center space-x-4">
-                  <div className="py-1 rounded-full text-sm bg-zinc-200 dark:bg-zinc-900">
+                  <div className="py-1 rounded-full text-sm bg-zinc-200 dark:bg-zinc-950">
                     {t("playersCount", {
                       current: serverInfo.currentPlayers,
                       max: serverInfo.maxPlayers,
@@ -752,7 +752,7 @@ function App() {
         </header>
 
         {serverInfo && (
-          <nav className="bg-white border-zinc-200 border-b dark:bg-zinc-900 dark:border-zinc-700">
+          <nav className="bg-white border-zinc-200 border-b dark:bg-zinc-950 dark:border-zinc-700">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex space-x-8">
                 {[
@@ -774,8 +774,8 @@ function App() {
                     key={tab.id}
                     onClick={() => setCurrentTab(tab.id as TabType)}
                     className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${currentTab === tab.id
-                      ? "border-purple-500 text-purple-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                        ? "border-purple-500 text-purple-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                       }`}
                   >
                     <tab.icon className="w-4 h-4" />
@@ -830,9 +830,9 @@ function App() {
                     </button>
 
                     <div
-                      className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top z-50 ${showHistory
-                        ? "opacity-100 scale-y-100 pointer-events-auto"
-                        : "opacity-0 scale-y-95 pointer-events-none"
+                      className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top z-50 ${showHistory
+                          ? "opacity-100 scale-y-100 pointer-events-auto"
+                          : "opacity-0 scale-y-95 pointer-events-none"
                         }`}
                     >
                       <div className="max-h-96 overflow-y-auto">
@@ -846,8 +846,8 @@ function App() {
                               setServersHistoryHoveredId(null)
                             }
                             className={`group relative transition-colors duration-150 ${index !== serverHistory.length - 1
-                              ? "border-b border-zinc-100 dark:border-zinc-700"
-                              : ""
+                                ? "border-b border-zinc-100 dark:border-zinc-700"
+                                : ""
                               } ${serversHistoryHoveredId === server.id
                                 ? "bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-zinc-700/50"
                                 : "hover:bg-gradient-to-r hover:from-purple-25 hover:to-transparent dark:hover:from-zinc-700/30 dark:hover:to-transparent"
@@ -862,7 +862,7 @@ function App() {
                               className="w-full text-left px-4 py-3 transition-all duration-150"
                             >
                               <div className="flex items-start gap-3">
-                                <div className="p-2 bg-zinc-100 dark:bg-zinc-900 rounded-lg mt-0.5">
+                                <div className="p-2 bg-zinc-100 dark:bg-zinc-950 rounded-lg mt-0.5">
                                   <Server className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -886,16 +886,16 @@ function App() {
                                     e.stopPropagation();
                                     setServerHistory((prev) => {
                                       const updatedHistory = prev.filter(
-                                        (s) => s.id !== server.id
+                                        (s) => s.id !== server.id,
                                       );
                                       localStorage.setItem(
                                         "serverHistory",
-                                        JSON.stringify(updatedHistory)
+                                        JSON.stringify(updatedHistory),
                                       );
                                       return updatedHistory;
                                     });
                                   }}
-                                  className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:text-zinc-500 dark:hover:text-zinc-300 dark:hover:bg-zinc-900 opacity-0 group-hover:opacity-100 transition-all duration-150 flex-shrink-0 cursor-pointer"
+                                  className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:text-zinc-500 dark:hover:text-zinc-300 dark:hover:bg-zinc-950 opacity-0 group-hover:opacity-100 transition-all duration-150 flex-shrink-0 cursor-pointer"
                                   title={t("removeFromHistory")}
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -917,7 +917,7 @@ function App() {
                         e.stopPropagation();
                         setShowSortDropdown(!showSortDropdown);
                       }}
-                      className="flex items-center gap-2 px-3 py-2 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-50 dark:bg-zinc-900 dark:border-zinc-600 dark:hover:bg-zinc-900"
+                      className="flex items-center gap-2 px-3 py-2 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-50 dark:bg-zinc-950 dark:border-zinc-600 dark:hover:bg-zinc-950"
                     >
                       <ArrowUpDown className="w-4 h-4" />
                       <span className="text-sm">
@@ -930,7 +930,7 @@ function App() {
                     </button>
 
                     {showSortDropdown && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white border border-zinc-300 rounded-lg shadow-lg z-10 dark:bg-zinc-900 dark:border-zinc-600">
+                      <div className="absolute right-0 mt-2 w-48 bg-white border border-zinc-300 rounded-lg shadow-lg z-10 dark:bg-zinc-950 dark:border-zinc-600">
                         <div className="p-2">
                           {/* Options de tri par champ */}
                           <div className="mb-2">
@@ -948,9 +948,9 @@ function App() {
                                   setSortField(option.field);
                                   setShowSortDropdown(false);
                                 }}
-                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-900 ${sortField === option.field
-                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                                  : "text-gray-700 dark:text-gray-300"
+                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 ${sortField === option.field
+                                    ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                    : "text-gray-700 dark:text-gray-300"
                                   }`}
                               >
                                 {option.label}
@@ -968,9 +968,9 @@ function App() {
                                 setSortOrder("asc");
                                 setShowSortDropdown(false);
                               }}
-                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-900 flex items-center gap-2 ${sortOrder === "asc"
-                                ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                                : "text-gray-700 dark:text-gray-300"
+                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 flex items-center gap-2 ${sortOrder === "asc"
+                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                  : "text-gray-700 dark:text-gray-300"
                                 }`}
                             >
                               <ArrowUp className="w-4 h-4" />
@@ -981,9 +981,9 @@ function App() {
                                 setSortOrder("desc");
                                 setShowSortDropdown(false);
                               }}
-                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-900 flex items-center gap-2 ${sortOrder === "desc"
-                                ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                                : "text-gray-700 dark:text-gray-300"
+                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 flex items-center gap-2 ${sortOrder === "desc"
+                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                  : "text-gray-700 dark:text-gray-300"
                                 }`}
                             >
                               <ArrowDown className="w-4 h-4" />
@@ -1002,7 +1002,7 @@ function App() {
                     placeholder="Rechercher un joueur..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-900 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400 w-full ring-1 ring-transparent focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    className="pl-10 pr-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-950 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400 w-full ring-1 ring-transparent focus:ring-purple-500 focus:border-purple-500 transition-all"
                   />
                 </div>
                 {loading ? (
@@ -1010,7 +1010,7 @@ function App() {
                 ) : (
                   <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
                     <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-                      <thead className="bg-zinc-50 dark:bg-zinc-900">
+                      <thead className="bg-zinc-50 dark:bg-zinc-950">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                             {t("hash")}
@@ -1032,15 +1032,15 @@ function App() {
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white dark:bg-zinc-900 divide-y divide-zinc-200 dark:divide-zinc-700">
+                      <tbody className="bg-white dark:bg-zinc-950 divide-y divide-zinc-200 dark:divide-zinc-700">
                         {filteredPlayers.map((player, index) => {
                           const socialLinks = extractSocialLinks(
-                            player.identifiers || []
+                            player.identifiers || [],
                           );
                           return (
                             <tr
                               key={player.id}
-                              className="hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                              className="hover:bg-zinc-50 dark:hover:bg-zinc-950"
                             >
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 {index + 1}
@@ -1054,10 +1054,10 @@ function App() {
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 <span
                                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${player.ping < 50
-                                    ? "bg-green-100 text-green-800"
-                                    : player.ping < 100
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-red-100 text-red-800"
+                                      ? "bg-green-100 text-green-800"
+                                      : player.ping < 100
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-red-100 text-red-800"
                                     }`}
                                 >
                                   {player.ping}ms
@@ -1097,8 +1097,8 @@ function App() {
                                 <button
                                   onClick={() => toggleFavorite(player)}
                                   className={`p-1 rounded ${isPlayerFavorite(player.id)
-                                    ? "text-yellow-500 hover:text-yellow-600"
-                                    : "text-gray-400 hover:text-gray-500"
+                                      ? "text-yellow-500 hover:text-yellow-600"
+                                      : "text-gray-400 hover:text-gray-500"
                                     }`}
                                   title={
                                     isPlayerFavorite(player.id)
@@ -1127,8 +1127,8 @@ function App() {
                               .includes(searchTerm.toLowerCase()) ||
                             player.id.toString().includes(searchTerm) ||
                             player.identifiers?.some((id) =>
-                              id.includes(searchTerm)
-                            )
+                              id.includes(searchTerm),
+                            ),
                         ).length || 0;
 
                       return displayedPlayersLimit < totalFilteredPlayers ? (
@@ -1143,7 +1143,7 @@ function App() {
                   </div>
                 )}
                 {filteredPlayers.length === 0 && searchTerm.trim() !== "" && (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 m-0" >
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400 bg-white dark:bg-zinc-950 rounded-lg border border-zinc-200 dark:border-zinc-700 m-0">
                     {t("noSearchResults")}
                     <br />
                     <button
@@ -1170,7 +1170,7 @@ function App() {
               ) : (
                 <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
                   <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-                    <thead className="bg-zinc-50 dark:bg-zinc-900">
+                    <thead className="bg-zinc-50 dark:bg-zinc-950">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                           ID
@@ -1186,15 +1186,15 @@ function App() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-zinc-900 divide-y divide-zinc-200 dark:divide-zinc-700">
+                    <tbody className="bg-white dark:bg-zinc-950 divide-y divide-zinc-200 dark:divide-zinc-700">
                       {favorites.map((player) => {
                         const isOnline = serverInfo?.players.some(
-                          (p) => p.id === player.id
+                          (p) => p.id === player.id,
                         );
                         return (
                           <tr
                             key={player.id}
-                            className="hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                            className="hover:bg-zinc-50 dark:hover:bg-zinc-950"
                           >
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-mono">
                               {player.id}
@@ -1205,8 +1205,8 @@ function App() {
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <span
                                 className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${isOnline
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-zinc-100 text-gray-800"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-zinc-100 text-gray-800"
                                   }`}
                               >
                                 {isOnline ? "En ligne" : "Hors ligne"}
@@ -1248,7 +1248,7 @@ function App() {
               )}
             </div>
           )}
-          <div className="fixed bottom-4 right-4 bg-white dark:bg-zinc-900 px-3 py-2 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 z-50 flex items-center gap-2">
+          <div className="fixed bottom-4 right-4 bg-white dark:bg-zinc-950 px-3 py-2 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 z-50 flex items-center gap-2">
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {t("lastRefresh")} :{" "}
               {lastRefreshTimestamp

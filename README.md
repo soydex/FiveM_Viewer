@@ -84,13 +84,6 @@ The `vercel.json` file is configured for:
 - ✅ Security headers
 - ✅ Automatic deployments on push
 
-### Manual Deployment
-
-Build and deploy the `dist/` folder to any static hosting service:
-- Netlify
-- GitHub Pages
-- AWS S3 + CloudFront
-- Firebase Hosting
 
 ### Project Structure
 ```
@@ -131,13 +124,6 @@ The application uses the official FiveM API:
 - **Endpoint**: `https://servers-frontend.fivem.net/api/servers/single/{serverId}`
 - **Data**: Real-time server information including player lists
 - **Rate Limiting**: Respects API limits with appropriate error handling
-
-## Browser Support
-
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
 
 ## Contributing
 
