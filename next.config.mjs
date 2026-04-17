@@ -2,10 +2,11 @@
 const nextConfig = {
   async rewrites() {
     return [
-      {
-        source: "/api/fivem/:path*",
-        destination: "https://servers-frontend.fivem.net/api/:path*",
-      },
+      // On retire le rewrite global pour utiliser des Route Handlers plus fiables
+      // {
+      //   source: "/api/fivem/:path*",
+      //   destination: "https://servers-frontend.fivem.net/api/:path*",
+      // },
     ];
   },
 };

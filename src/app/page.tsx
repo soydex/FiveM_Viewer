@@ -3,13 +3,13 @@
 import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations, useLocale } from "next-intl";
-import { NotificationContainer } from "../../components/Notifications";
-import { useNotifications } from "../../hooks/useNotifications";
+import { NotificationContainer } from "../components/Notifications";
+import { useNotifications } from "../hooks/useNotifications";
 import {
   cleanFiveMColors,
   extractDiscordLink,
   extractSocialLinks,
-} from "../../utils";
+} from "../utils";
 import useSWR from "swr";
 import {
   Users,
@@ -26,16 +26,15 @@ import {
   Trash2,
   Server,
   Clock,
-  Check,
 } from "lucide-react";
-import Footer from "../../components/Footer";
-import TopServ from "../../components/TopServ";
-import Mobile from "../../components/Mobile";
-import LanguageSwitcher from "../../components/LanguageSwitcher";
+import Footer from "../components/Footer";
+import TopServ from "../components/TopServ";
+import Mobile from "../components/Mobile";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 const StatisticsCharts = dynamic(
   () =>
-    import("../../components/StatisticsCharts").then((m) => m.StatisticsCharts),
+    import("../components/StatisticsCharts").then((m) => m.StatisticsCharts),
   { ssr: false, loading: () => <StatisticsSkeleton /> },
 );
 
@@ -213,7 +212,7 @@ function App() {
       console.warn("Erreur lors du chargement des favoris:", error);
       try {
         window.localStorage.removeItem("favorites");
-      } catch (e) { }
+      } catch (e) {}
     }
     return [];
   };
@@ -373,21 +372,16 @@ function App() {
     ];
   }, [topServersRawData]);
 
-  const [hasNotifiedError, setHasNotifiedError] = useState(false);
-
   useEffect(() => {
-    if (topServersError && !hasNotifiedError) {
+    if (topServersError) {
       console.error("Erreur SWR top serveurs:", topServersError);
       addNotification({
         type: "error",
         title: t("error"),
         message: t("unableToLoadTopServers"),
       });
-      setHasNotifiedError(true);
-    } else if (!topServersError && hasNotifiedError) {
-      setHasNotifiedError(false);
     }
-  }, [topServersError, hasNotifiedError, addNotification, t]);
+  }, [topServersError, addNotification, t]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -460,31 +454,32 @@ function App() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showSortDropdown]);
-  const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
-    if (scrollHeight - scrollTop - clientHeight < 200) {
-      setDisplayedPlayersLimit((prev) => {
-        const newLimit = prev + 50;
-        const filteredCount =
-          serverInfo?.players?.filter(
-            (player) =>
-              player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              player.id.toString().includes(searchTerm) ||
-              player.identifiers?.some((id) => id.includes(searchTerm)),
-          ).length || 0;
-        return Math.min(newLimit, filteredCount);
-      });
-    }
-  };
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortField(field);
-      setSortOrder("asc");
-    }
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop =
+        window.pageYOffset || document.documentElement.scrollTop;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+
+      if (documentHeight - scrollTop - windowHeight < 200) {
+        setDisplayedPlayersLimit((prev) => {
+          const newLimit = prev + 50;
+          const filteredCount =
+            serverInfo?.players?.filter(
+              (player) =>
+                player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                player.id.toString().includes(searchTerm) ||
+                player.identifiers?.some((id) => id.includes(searchTerm)),
+            ).length || 0;
+          return Math.min(newLimit, filteredCount);
+        });
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [serverInfo?.players, searchTerm]);
 
   useEffect(() => {
     setDisplayedPlayersLimit(50);
@@ -558,28 +553,14 @@ function App() {
         addNotification({
           type: "info",
           title: t("favoriteRemoved"),
-          message: t.rich("removedFromFavorites", {
-            name: player.name,
-            strong: (chunks) => (
-              <strong className="font-semibold text-zinc-900 dark:text-zinc-100">
-                {chunks}
-              </strong>
-            ),
-          }),
+          message: t("removedFromFavorites", { name: player.name }),
         });
         setFavorites((prev) => prev.filter((fav) => fav.id !== player.id));
       } else {
         addNotification({
           type: "success",
           title: t("favoriteAdded"),
-          message: t.rich("addedToFavorites", {
-            name: player.name,
-            strong: (chunks) => (
-              <strong className="font-semibold text-zinc-900 dark:text-zinc-100">
-                {chunks}
-              </strong>
-            ),
-          }),
+          message: t("addedToFavorites", { name: player.name }),
         });
         setFavorites((prev) => [...prev, player]);
       }
@@ -610,7 +591,7 @@ function App() {
                   width="100"
                   height="100"
                   viewBox="0 0 48 48"
-                  className="dark:text-white group-hover:text-purple-600 w-10 h-10 transition-colors"
+                  className="text-white group-hover:text-purple-600 w-10 h-10 transition-colors"
                 >
                   <polygon
                     fill="CurrentColor"
@@ -637,7 +618,7 @@ function App() {
                     points="23.932,14.055 24.377,15.626 30.941,9.178 30.385,7.702"
                   ></polygon>
                 </svg>
-                <h1 className="dark:text-white font-semibold text-lg group-hover:text-purple-600 transition-colors">
+                <h1 className="text-white font-semibold text-lg group-hover:text-purple-600 transition-colors">
                   FiveM Viewer
                 </h1>
               </div>
@@ -671,8 +652,8 @@ function App() {
                   <button
                     onClick={() => setAutoRefresh(!autoRefresh)}
                     className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${autoRefresh
-                      ? "bg-green-600 text-white hover:bg-green-700"
-                      : "bg-zinc-950 text-white hover:bg-zinc-950"
+                        ? "bg-green-600 text-white hover:bg-green-700"
+                        : "bg-zinc-950 text-white hover:bg-zinc-950"
                       }`}
                     title={
                       autoRefresh
@@ -693,7 +674,7 @@ function App() {
             {serverInfo && !loading && (
               <div className="mt-4 space-y-2">
                 <div className="flex items-center space-x-4">
-                  <div className="p-1 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg">
+                  <div className="py-1 rounded-full text-sm bg-zinc-200 dark:bg-zinc-950">
                     {t("playersCount", {
                       current: serverInfo.currentPlayers,
                       max: serverInfo.maxPlayers,
@@ -791,8 +772,8 @@ function App() {
                     key={tab.id}
                     onClick={() => setCurrentTab(tab.id as TabType)}
                     className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${currentTab === tab.id
-                      ? "border-purple-500 text-purple-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                        ? "border-purple-500 text-purple-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                       }`}
                   >
                     <tab.icon className="w-4 h-4" />
@@ -824,7 +805,7 @@ function App() {
                       onClick={() => setShowHistory(!showHistory)}
                       className="w-full group relative"
                     >
-                      <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-zinc-800 dark:to-zinc-900 border border-purple-200 dark:border-zinc-600 hover:border-purple-300 dark:hover:border-zinc-500 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-zinc-900 dark:to-zinc-900 border border-purple-200 dark:border-zinc-600 hover:border-purple-300 dark:hover:border-zinc-500 transition-all duration-200 hover:shadow-md">
                         <div className="flex items-center gap-3 flex-1">
                           <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                             <Clock className="w-4 h-4 text-purple-600 dark:text-purple-400" />
@@ -848,8 +829,8 @@ function App() {
 
                     <div
                       className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top z-50 ${showHistory
-                        ? "opacity-100 scale-y-100 pointer-events-auto"
-                        : "opacity-0 scale-y-95 pointer-events-none"
+                          ? "opacity-100 scale-y-100 pointer-events-auto"
+                          : "opacity-0 scale-y-95 pointer-events-none"
                         }`}
                     >
                       <div className="max-h-96 overflow-y-auto">
@@ -863,8 +844,8 @@ function App() {
                               setServersHistoryHoveredId(null)
                             }
                             className={`group relative transition-colors duration-150 ${index !== serverHistory.length - 1
-                              ? "border-b border-zinc-100 dark:border-zinc-700"
-                              : ""
+                                ? "border-b border-zinc-100 dark:border-zinc-700"
+                                : ""
                               } ${serversHistoryHoveredId === server.id
                                 ? "bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-zinc-700/50"
                                 : "hover:bg-gradient-to-r hover:from-purple-25 hover:to-transparent dark:hover:from-zinc-700/30 dark:hover:to-transparent"
@@ -934,77 +915,80 @@ function App() {
                         e.stopPropagation();
                         setShowSortDropdown(!showSortDropdown);
                       }}
-                      className="flex items-center justify-between gap-2 px-3 py-2 h-9 min-w-[140px] text-sm font-medium bg-white border border-zinc-200 rounded-md shadow-sm hover:bg-zinc-100 hover:text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:bg-zinc-950 dark:border-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 dark:focus:ring-zinc-300 transition-colors"
+                      className="flex items-center gap-2 px-3 py-2 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-50 dark:bg-zinc-950 dark:border-zinc-600 dark:hover:bg-zinc-950"
                     >
-                      <span className="flex items-center gap-2">
-                        <ArrowUpDown className="w-4 h-4 text-zinc-500" />
-                        <span>
-                          {sortField === "id" && t("id")}
-                          {sortField === "name" && t("name")}
-                          {sortField === "ping" && t("ping")}
-                        </span>
+                      <ArrowUpDown className="w-4 h-4" />
+                      <span className="text-sm">
+                        {sortField === "id" && t("id")}
+                        {sortField === "name" && t("name")}
+                        {sortField === "ping" && t("ping")}
+                        {sortOrder === "asc" ? " ↑" : " ↓"}
                       </span>
-                      <ChevronDown className="w-4 h-4 opacity-50" />
+                      <ChevronDown className="w-4 h-4" />
                     </button>
 
                     {showSortDropdown && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white border border-zinc-200 rounded-md shadow-md z-50 p-1 dark:bg-zinc-950 dark:border-zinc-800 animate-in fade-in-80 zoom-in-95 slide-in-from-top-2 origin-top">
-                        <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wide px-2 py-1.5 mb-1 dark:text-zinc-400">
-                          Trier par
+                      <div className="absolute right-0 mt-2 w-48 bg-white border border-zinc-300 rounded-lg shadow-lg z-10 dark:bg-zinc-950 dark:border-zinc-600">
+                        <div className="p-2">
+                          {/* Options de tri par champ */}
+                          <div className="mb-2">
+                            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 dark:text-gray-400">
+                              Trier par
+                            </div>
+                            {[
+                              { field: "id" as SortField, label: "ID" },
+                              { field: "name" as SortField, label: "Nom" },
+                              { field: "ping" as SortField, label: "Ping" },
+                            ].map((option) => (
+                              <button
+                                key={option.field}
+                                onClick={() => {
+                                  setSortField(option.field);
+                                  setShowSortDropdown(false);
+                                }}
+                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 ${sortField === option.field
+                                    ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                    : "text-gray-700 dark:text-gray-300"
+                                  }`}
+                              >
+                                {option.label}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Options d'ordre */}
+                          <div className="border-t border-zinc-200 dark:border-zinc-600 pt-2">
+                            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 dark:text-gray-400">
+                              {t("order")}
+                            </div>
+                            <button
+                              onClick={() => {
+                                setSortOrder("asc");
+                                setShowSortDropdown(false);
+                              }}
+                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 flex items-center gap-2 ${sortOrder === "asc"
+                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                  : "text-gray-700 dark:text-gray-300"
+                                }`}
+                            >
+                              <ArrowUp className="w-4 h-4" />
+                              {t("ascending")}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSortOrder("desc");
+                                setShowSortDropdown(false);
+                              }}
+                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 flex items-center gap-2 ${sortOrder === "desc"
+                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                  : "text-gray-700 dark:text-gray-300"
+                                }`}
+                            >
+                              <ArrowDown className="w-4 h-4" />
+                              {t("descending")}
+                            </button>
+                          </div>
                         </div>
-                        {[
-                          { field: "id" as SortField, label: "ID" },
-                          { field: "name" as SortField, label: "Nom" },
-                          { field: "ping" as SortField, label: "Ping" },
-                        ].map((option) => (
-                          <button
-                            key={option.field}
-                            onClick={() => {
-                              setSortField(option.field);
-                              setShowSortDropdown(false);
-                            }}
-                            className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 dark:focus:bg-zinc-800 dark:focus:text-zinc-50 ${sortField === option.field ? "font-medium" : ""}`}
-                          >
-                            <span className="flex h-4 w-4 items-center justify-center mr-2">
-                              {sortField === option.field && <Check className="h-4 w-4" />}
-                            </span>
-                            {option.label}
-                          </button>
-                        ))}
-                        <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-1 -mx-1" />
-                        <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wide px-2 py-1.5 mb-1 dark:text-zinc-400">
-                          {t("order")}
-                        </div>
-                        <button
-                          onClick={() => {
-                            setSortOrder("asc");
-                            setShowSortDropdown(false);
-                          }}
-                          className={`relative flex w-full cursor-pointer select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 dark:focus:bg-zinc-800 dark:focus:text-zinc-50 ${sortOrder === "asc" ? "font-medium" : ""}`}
-                        >
-                          <span className="flex items-center">
-                            <span className="flex h-4 w-4 items-center justify-center mr-2">
-                              {sortOrder === "asc" && <Check className="h-4 w-4" />}
-                            </span>
-                            {t("ascending")}
-                          </span>
-                          <ArrowUp className="w-4 h-4 text-zinc-500" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSortOrder("desc");
-                            setShowSortDropdown(false);
-                          }}
-                          className={`relative flex w-full cursor-pointer select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 dark:focus:bg-zinc-800 dark:focus:text-zinc-50 ${sortOrder === "desc" ? "font-medium" : ""}`}
-                        >
-                          <span className="flex items-center">
-                            <span className="flex h-4 w-4 items-center justify-center mr-2">
-                              {sortOrder === "desc" && <Check className="h-4 w-4" />}
-                            </span>
-                            {t("descending")}
-                          </span>
-                          <ArrowDown className="w-4 h-4 text-zinc-500" />
-                        </button>
                       </div>
                     )}
                   </div>
@@ -1022,65 +1006,26 @@ function App() {
                 {loading ? (
                   <PlayersTableSkeleton />
                 ) : (
-                  <div
-                    className="overflow-x-auto overflow-y-auto max-h-[600px] rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-sm"
-                    onScroll={handleTableScroll}
-                  >
-                    <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700 relative">
-                      <thead className="bg-zinc-50 dark:bg-zinc-950 sticky top-0 z-10 shadow-sm">
+                  <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                      <thead className="bg-zinc-50 dark:bg-zinc-950">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800">
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                             {t("hash")}
                           </th>
-                          <th
-                            className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800 cursor-pointer hover:bg-zinc-100 hover:dark:bg-zinc-900 transition-colors group"
-                            onClick={() => handleSort("id")}
-                          >
-                            <div className="flex items-center gap-1 select-none">
-                              {t("id")}
-                              {sortField === "id" ? (
-                                <span className="text-purple-600 dark:text-purple-400">
-                                  {sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                                </span>
-                              ) : (
-                                <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
-                              )}
-                            </div>
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            {t("id")}
                           </th>
-                          <th
-                            className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800 cursor-pointer hover:bg-zinc-100 hover:dark:bg-zinc-900 transition-colors group"
-                            onClick={() => handleSort("name")}
-                          >
-                            <div className="flex items-center gap-1 select-none">
-                              {t("name")}
-                              {sortField === "name" ? (
-                                <span className="text-purple-600 dark:text-purple-400">
-                                  {sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                                </span>
-                              ) : (
-                                <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
-                              )}
-                            </div>
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            {t("name")}
                           </th>
-                          <th
-                            className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800 cursor-pointer hover:bg-zinc-100 hover:dark:bg-zinc-900 transition-colors group"
-                            onClick={() => handleSort("ping")}
-                          >
-                            <div className="flex items-center gap-1 select-none">
-                              {t("ping")}
-                              {sortField === "ping" ? (
-                                <span className="text-purple-600 dark:text-purple-400">
-                                  {sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                                </span>
-                              ) : (
-                                <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
-                              )}
-                            </div>
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            {t("ping")}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800">
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                             {t("links")}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800">
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                             {t("actions")}
                           </th>
                         </tr>
@@ -1107,10 +1052,10 @@ function App() {
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 <span
                                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${player.ping < 50
-                                    ? "bg-green-100 text-green-800"
-                                    : player.ping < 100
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-red-100 text-red-800"
+                                      ? "bg-green-100 text-green-800"
+                                      : player.ping < 100
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-red-100 text-red-800"
                                     }`}
                                 >
                                   {player.ping}ms
@@ -1150,8 +1095,8 @@ function App() {
                                 <button
                                   onClick={() => toggleFavorite(player)}
                                   className={`p-1 rounded ${isPlayerFavorite(player.id)
-                                    ? "text-yellow-500 hover:text-yellow-600"
-                                    : "text-gray-400 hover:text-gray-500"
+                                      ? "text-yellow-500 hover:text-yellow-600"
+                                      : "text-gray-400 hover:text-gray-500"
                                     }`}
                                   title={
                                     isPlayerFavorite(player.id)
@@ -1258,8 +1203,8 @@ function App() {
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <span
                                 className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${isOnline
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-zinc-100 text-gray-800"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-zinc-100 text-gray-800"
                                   }`}
                               >
                                 {isOnline ? "En ligne" : "Hors ligne"}

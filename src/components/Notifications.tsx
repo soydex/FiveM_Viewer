@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Notification, NotificationType } from "../hooks/useNotifications";
+import { CheckCircle2, AlertCircle, AlertTriangle, Info, X } from "lucide-react";
 
 interface NotificationToastProps {
   notification: Notification;
@@ -9,10 +10,11 @@ interface NotificationToastProps {
 function NotificationToast({ notification, onClose }: NotificationToastProps) {
   const duration = notification.duration || 5000;
   const [timeLeft, setTimeLeft] = useState(duration);
+  const [isLeaving, setIsLeaving] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      onClose(notification.id);
+      handleClose();
     }, duration);
 
     const interval = setInterval(() => {
@@ -26,90 +28,98 @@ function NotificationToast({ notification, onClose }: NotificationToastProps) {
       clearTimeout(timer);
       clearInterval(interval);
     };
-  }, [notification.id, duration, onClose]);
+  }, [notification.id, duration]);
+
+  const handleClose = () => {
+    setIsLeaving(true);
+    setTimeout(() => onClose(notification.id), 300); // Attendre l'animation de sortie
+  };
 
   const progressPercentage = (timeLeft / duration) * 100;
 
   const getIcon = (type: NotificationType) => {
     switch (type) {
       case "success":
-        return "✅";
+        return <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
       case "error":
-        return "❌";
+        return <AlertCircle className="w-5 h-5 text-rose-500" />;
       case "warning":
-        return "⚠️";
+        return <AlertTriangle className="w-5 h-5 text-amber-500" />;
       case "info":
-        return "ℹ️";
+        return <Info className="w-5 h-5 text-blue-500" />;
     }
   };
 
-  const getColors = (type: NotificationType) => {
+  const getThemeClasses = (type: NotificationType) => {
+    // Classes de base pour le conteneur du toast
     const baseClasses =
-      "bg-white border-zinc-200 text-gray-900 dark:bg-zinc-950/80 dark:border-zinc-700 dark:text-white";
+      "pointer-events-auto relative w-full overflow-hidden rounded-xl border p-4 shadow-2xl backdrop-blur-xl transition-all duration-300 ease-in-out";
 
-    switch (type) {
-      case "success":
-        return `${baseClasses} border-green-500`;
-      case "error":
-        return `${baseClasses} border-red-500`;
-      case "warning":
-        return `${baseClasses} border-yellow-500`;
-      case "info":
-        return `${baseClasses} border-blue-500`;
-    }
+    // Animations d'entrée et de sortie
+    const animationClasses = isLeaving
+      ? "translate-x-full opacity-0"
+      : "translate-x-0 opacity-100 animate-in slide-in-from-right-8";
+
+    // Couleurs et bordures selon le thème
+    const colorClasses =
+      "bg-white/80 border-gray-200 dark:bg-zinc-900/90 dark:border-zinc-800/80";
+
+    return `${baseClasses} ${animationClasses} ${colorClasses}`;
   };
 
   const getProgressColor = (type: NotificationType) => {
     switch (type) {
       case "success":
-        return "bg-green-500";
+        return "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]";
       case "error":
-        return "bg-red-500";
+        return "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]";
       case "warning":
-        return "bg-yellow-500";
+        return "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]";
       case "info":
-        return "bg-blue-500";
+        return "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]";
     }
   };
 
   return (
-    <div className="relative overflow-hidden rounded-lg">
-      <div
-        className={`absolute inset-0 ${getProgressColor(notification.type)} transition-all duration-100 ease-linear`}
-        style={{ width: `${progressPercentage}%` }}
-      />
-      <div
-        className={`relative p-4 rounded-lg shadow-lg ${getColors(notification.type)} bg-opacity-95 backdrop-blur-sm`}
-      >
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
-            <span className="text-lg">{getIcon(notification.type)}</span>
-          </div>
-          <div className="ml-3 flex-1">
-            <p className="text-sm font-medium">{notification.title}</p>
-            {notification.message && (
-              <p
-                className="mt-1 text-sm opacity-75"
-                dangerouslySetInnerHTML={{ __html: notification.message }}
-              />
-            )}
-          </div>
-          <div className="ml-4 flex-shrink-0">
-            <button
-              onClick={() => onClose(notification.id)}
-              className="inline-flex rounded-md p-1.5 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:text-gray-400 dark:hover:text-gray-300"
-            >
-              <span className="sr-only">Fermer</span>
-              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-          </div>
+    <div className={getThemeClasses(notification.type)}>
+      <div className="flex items-start gap-4">
+        {/* Icône */}
+        <div className="mt-0.5 flex-shrink-0 animate-in zoom-in-50 duration-300 delay-100">
+          {getIcon(notification.type)}
         </div>
+
+        {/* Contenu */}
+        <div className="flex-1 w-0">
+          <p className="text-sm font-semibold text-gray-900 dark:text-zinc-100">
+            {notification.title}
+          </p>
+          {notification.message && (
+            <div className="mt-1 text-sm text-gray-600 dark:text-zinc-400 break-words">
+              {notification.message}
+            </div>
+          )}
+        </div>
+
+        {/* Bouton de fermeture */}
+        <div className="flex flex-shrink-0">
+          <button
+            onClick={handleClose}
+            className="inline-flex rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+          >
+            <span className="sr-only">Fermer</span>
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Barre de progression avec effet glow */}
+      <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gray-100/50 dark:bg-zinc-800/50">
+        <div
+          className={`h-full transition-all duration-100 ease-linear ${getProgressColor(
+            notification.type
+          )}`}
+          style={{ width: `${progressPercentage}%` }}
+        />
       </div>
     </div>
   );
@@ -125,14 +135,20 @@ export function NotificationContainer({
   onClose,
 }: NotificationContainerProps) {
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
-      {notifications.map((notification) => (
-        <NotificationToast
-          key={notification.id}
-          notification={notification}
-          onClose={onClose}
-        />
-      ))}
+    <div
+      aria-live="assertive"
+      className="pointer-events-none fixed inset-0 z-[100] flex items-end px-4 py-6 sm:items-start sm:p-6"
+    >
+      <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
+        {notifications.map((notification) => (
+          <div key={notification.id} className="w-full max-w-sm">
+            <NotificationToast
+              notification={notification}
+              onClose={onClose}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

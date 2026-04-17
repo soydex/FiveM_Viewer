@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 
 export type NotificationType = "success" | "error" | "warning" | "info";
 
@@ -6,7 +6,7 @@ export interface Notification {
   id: string;
   type: NotificationType;
   title: string;
-  message?: string;
+  message?: ReactNode;
   duration?: number;
 }
 

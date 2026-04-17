@@ -6,7 +6,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full bg-zinc-950 border-t border-zinc-800 pb-12">
+    <footer className="w-full dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 pb-12">
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
         {/* Main horizontal layout */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 py-8">
@@ -21,7 +21,7 @@ const Footer = () => {
               width="100"
               height="100"
               viewBox="0 0 48 48"
-              className="text-white group-hover:text-purple-600 w-10 h-10 transition-colors"
+              className="text-zinc-900 dark:text-white group-hover:text-purple-600 w-10 h-10 transition-colors"
             >
               <polygon
                 fill="CurrentColor"
@@ -48,7 +48,7 @@ const Footer = () => {
                 points="23.932,14.055 24.377,15.626 30.941,9.178 30.385,7.702"
               ></polygon>
             </svg>
-            <span className="text-white font-semibold text-lg group-hover:text-purple-600 transition-colors">
+            <span className="text-zinc-900 dark:text-white font-semibold text-lg group-hover:text-purple-600 transition-colors">
               FiveM Viewer
             </span>
           </div>
@@ -57,25 +57,25 @@ const Footer = () => {
           <nav className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <a
               href="/docs"
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
+              className="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
             >
               Documentation
             </a>
             <a
               href="/terms"
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
+              className="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
             >
               Terms
             </a>
             <a
               href="/blog"
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
+              className="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
             >
               Blog
             </a>
             <a
               href="/changelog"
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
+              className="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
             >
               Changelog
             </a>
@@ -83,7 +83,7 @@ const Footer = () => {
               href="https://github.com/soydex/FiveM_Viewer"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
+              className="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
             >
               GitHub
             </a>
@@ -91,7 +91,7 @@ const Footer = () => {
               href="https://discord.gg/invite"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
+              className="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
             >
               Discord
             </a>
@@ -103,7 +103,7 @@ const Footer = () => {
               href="https://github.com/soydex"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-zinc-400 hover:text-white transition-colors"
+              className="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               aria-label="GitHub"
             >
               <Github className="w-5 h-5" />
@@ -112,7 +112,7 @@ const Footer = () => {
               href="https://twitter.com/soydex_"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-zinc-400 hover:text-white transition-colors"
+              className="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               aria-label="Twitter"
             >
               <Twitter className="w-5 h-5" />
@@ -121,14 +121,14 @@ const Footer = () => {
               href="https://soydex.dev"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-zinc-400 hover:text-blue-500 transition-colors"
+              className="text-zinc-500 hover:text-blue-500 dark:text-zinc-400 dark:hover:text-blue-400 transition-colors"
               aria-label="Portfolio"
             >
               <Glasses className="w-5 h-5" />
             </a>
             <a
               href="mailto:soydexdev@proton.me"
-              className="text-zinc-400 hover:text-purple-500 transition-colors"
+              className="text-zinc-500 hover:text-purple-500 dark:text-zinc-400 dark:hover:text-purple-400 transition-colors"
               aria-label="Email"
             >
               <Mail className="w-5 h-5" />
@@ -137,7 +137,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom: Copyright */}
-        <div className="border-t border-zinc-800 py-6 flex items-center justify-between">
+        <div className="border-t border-zinc-200 dark:border-zinc-800 py-6 flex items-center justify-between">
           <p className="text-sm text-zinc-500 text-center sm:text-left">
             © {currentYear} FiveM Viewer. {t("licensedUnderMIT")}
           </p>
