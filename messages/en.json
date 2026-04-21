@@ -38,7 +38,7 @@
     "enableAutoRefresh": "Enable auto-refresh",
     "autoOn": "Auto ON",
     "autoOff": "Auto OFF",
-    "playersCount": "{current}/{max} players",
+    "playersCount": "Players",
     "licensedUnderMIT": "Licensed under MIT.",
     "notAffiliated": "We are not affiliated with FiveM or Cfx.re.",
     "playerList": "Player List",

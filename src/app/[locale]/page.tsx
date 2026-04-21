@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, Suspense, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations, useLocale } from "next-intl";
 import { NotificationContainer } from "../../components/Notifications";
@@ -27,6 +27,7 @@ import {
   Server,
   Clock,
   Check,
+  Command,
 } from "lucide-react";
 import Footer from "../../components/Footer";
 import TopServ from "../../components/TopServ";
@@ -227,6 +228,8 @@ function App() {
     loadFavoritesFromStorage,
   );
   const [serverHistory, setServerHistory] = useState<ServerHistory[]>([]);
+  const historyRef = useRef<HTMLDivElement>(null);
+  const sortRef = useRef<HTMLDivElement>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [serversHistoryHoveredId, setServersHistoryHoveredId] = useState<
     string | null
@@ -452,14 +455,18 @@ function App() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showSortDropdown && !(event.target as Element).closest(".relative")) {
+      const target = event.target as Node;
+      if (showHistory && historyRef.current && !historyRef.current.contains(target)) {
+        setShowHistory(false);
+      }
+      if (showSortDropdown && sortRef.current && !sortRef.current.contains(target)) {
         setShowSortDropdown(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showSortDropdown]);
+  }, [showHistory, showSortDropdown]);
   const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
     if (scrollHeight - scrollTop - clientHeight < 200) {
@@ -644,35 +651,57 @@ function App() {
 
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    placeholder={t("serverIdPlaceholder")}
-                    value={serverId}
-                    onChange={(e) => {
-                      const newValue = e.target.value.trim();
-                      setServerId(newValue);
-                      if (newValue.length === 6) {
-                        fetchServerData(newValue);
-                      }
-                    }}
-                    className="px-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-950 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400"
-                  />
+                  <div className="flex h-10 items-center bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-[10px] focus-within:ring-2 focus-within:ring-purple-500/50 transition-all duration-150 ease-in-out px-3 gap-2">
+                    <div className="flex items-center gap-1.5">
+                      {navigator.userAgent.includes("Mac") ? (
+                        <kbd className="bg-zinc-100 dark:bg-zinc-800 rounded px-1.5 py-0.5 text-[10px] font-medium border border-zinc-300 dark:border-zinc-700 text-zinc-500 flex items-center justify-center min-w-[20px]">
+                          <Command className="w-3 h-3" />
+                        </kbd>
+                      ) : (
+                        <kbd className="bg-zinc-100 dark:bg-zinc-800 rounded px-1.5 py-0.5 text-[10px] font-medium border border-zinc-300 dark:border-zinc-700 text-zinc-500">
+                          CTRL
+                        </kbd>
+                      )}
+                      <span className="text-zinc-500 text-[10px] font-medium">+ R</span>
+                    </div>
+
+                    <div className="w-[1px] h-4 bg-zinc-300 dark:bg-zinc-800 mx-1" />
+
+                    <input
+                      type="text"
+                      autoCapitalize="off"
+                      autoCorrect="off"
+                      autoFocus
+                      placeholder={t("serverIdPlaceholder")}
+                      value={serverId}
+                      onChange={(e) => {
+                        const newValue = e.target.value.trim();
+                        setServerId(newValue);
+                        if (newValue.length === 6) {
+                          fetchServerData(newValue);
+                        }
+                      }}
+                      className="bg-transparent text-gray-900 dark:text-[#f4f4f5] px-1 py-1 focus:outline-none w-32 text-sm placeholder-gray-500 dark:placeholder-zinc-500"
+                    />
+                    <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest ml-1">ID</span>
+                  </div>
                   <button
                     onClick={() => fetchServerData()}
                     disabled={loading || !serverId.trim()}
                     aria-label={t("reloadServerData")}
                     title={t("reloadServerData")}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    <Play className="w-4 h-4" />
-                    {loading ? t("loading") : t("reload")}
+                    className="relative cursor-pointer opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#8122b0] to-[#dc98fd] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span className="flex items-center gap-2 px-6 py-2 bg-[#B931FC] text-white rounded-[10px] bg-gradient-to-t from-[#a62ce2] to-[#c045fc] font-medium whitespace-nowrap">
+                      <Play className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+                      {loading ? t("loading") : t("reload")}
+                    </span>
                   </button>
 
                   <button
                     onClick={() => setAutoRefresh(!autoRefresh)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${autoRefresh
-                      ? "bg-green-600 text-white hover:bg-green-700"
-                      : "bg-zinc-950 text-white hover:bg-zinc-950"
+                    className={`relative cursor-pointer opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] active:scale-95 ${autoRefresh
+                      ? "bg-gradient-to-t from-[#1d4ed8] to-[#60a5fa]"
+                      : "bg-gradient-to-t from-zinc-700 to-zinc-500"
                       }`}
                     title={
                       autoRefresh
@@ -680,10 +709,15 @@ function App() {
                         : t("enableAutoRefresh")
                     }
                   >
-                    <RefreshCw
-                      className={`w-4 h-4 ${autoRefresh ? "animate-spin" : ""}`}
-                    />
-                    {autoRefresh ? t("autoOn") : t("autoOff")}
+                    <span className={`flex items-center gap-2 px-6 py-2 text-white rounded-[10px] font-medium whitespace-nowrap min-w-[150px] ${autoRefresh
+                      ? "bg-gradient-to-t from-[#2563eb] to-[#3b82f6]"
+                      : "bg-gradient-to-t from-zinc-800 to-zinc-700"
+                      }`}>
+                      <RefreshCw
+                        className={`w-4 h-4 ${autoRefresh ? "animate-spin" : ""}`}
+                      />
+                      {autoRefresh ? t("autoOn") : t("autoOff")}
+                    </span>
                   </button>
                 </div>
                 <LanguageSwitcher />
@@ -693,11 +727,14 @@ function App() {
             {serverInfo && !loading && (
               <div className="mt-4 space-y-2">
                 <div className="flex items-center space-x-4">
-                  <div className="p-1 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg">
-                    {t("playersCount", {
-                      current: serverInfo.currentPlayers,
-                      max: serverInfo.maxPlayers,
-                    })}
+                  <div className="text-sm">
+                    <span className="font-semibold">{serverInfo.currentPlayers}</span>
+                    {" "}
+                    /
+                    {" "}
+                    <span>{serverInfo.maxPlayers}</span>
+                    {" "}
+                    {t("playersCount")}
                   </div>
                   <div className="flex items-center space-x-2">
                     {serverInfo.iconUrl && (
@@ -819,28 +856,36 @@ function App() {
             currentTab === "players" && (
               <div className="flex flex-col gap-4">
                 {serverHistory.length > 0 && (
-                  <div className="relative">
+                  <div className="relative" ref={historyRef}>
                     <button
                       onClick={() => setShowHistory(!showHistory)}
-                      className="w-full group relative"
+                      className={`w-full group relative cursor-pointer opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] active:scale-[0.98] ${showHistory
+                        ? "bg-gradient-to-t from-[#8122b0] to-[#dc98fd]"
+                        : "bg-gradient-to-t from-zinc-700 to-zinc-500"
+                        }`}
                     >
-                      <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-zinc-800 dark:to-zinc-900 border border-purple-200 dark:border-zinc-600 hover:border-purple-300 dark:hover:border-zinc-500 transition-all duration-200 hover:shadow-md">
+                      <div className={`flex items-center gap-3 px-4 py-2 text-white rounded-[10px] font-medium transition-all ${showHistory
+                        ? "bg-gradient-to-t from-[#a62ce2] to-[#c045fc]"
+                        : "bg-gradient-to-t from-zinc-800 to-zinc-700"
+                        }`}>
                         <div className="flex items-center gap-3 flex-1">
-                          <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                            <Clock className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                          <div className={`p-2 rounded-lg transition-colors ${showHistory ? "" : ""
+                            }`}>
+                            <Clock className="w-4 h-4" />
                           </div>
                           <div className="text-left">
-                            <div className="font-semibold text-sm text-gray-900 dark:text-white">
+                            <div className="font-semibold text-sm">
                               {t("recentServers")}
                             </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                            <div className={`text-xs transition-colors ${showHistory ? "text-purple-100" : "text-zinc-400"
+                              }`}>
                               {serverHistory.length}{" "}
                               {t("server", { count: serverHistory.length })}
                             </div>
                           </div>
                         </div>
                         <ChevronDown
-                          className={`w-5 h-5 text-purple-600 dark:text-purple-400 transition-transform duration-300 ${showHistory ? "rotate-180" : ""
+                          className={`w-5 h-5 transition-transform duration-300 ${showHistory ? "rotate-180 text-white" : "text-zinc-400"
                             }`}
                         />
                       </div>
@@ -928,13 +973,13 @@ function App() {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">{t("playerList")}</h2>
 
-                  <div className="relative">
+                  <div className="relative" ref={sortRef}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowSortDropdown(!showSortDropdown);
                       }}
-                      className="flex items-center justify-between gap-2 px-3 py-2 h-9 min-w-[140px] text-sm font-medium bg-white border border-zinc-200 rounded-md shadow-sm hover:bg-zinc-100 hover:text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:bg-zinc-950 dark:border-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 dark:focus:ring-zinc-300 transition-colors"
+                      className="flex items-center justify-between gap-2 px-3 py-2 h-9 min-w-[140px] text-sm font-medium bg-white/50 backdrop-blur-sm border border-zinc-200 rounded-md shadow-sm hover:bg-zinc-100/50 hover:text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:bg-zinc-950/50 dark:border-zinc-800 dark:hover:border-zinc-700 dark:hover:bg-zinc-950/50 dark:hover:text-zinc-50 dark:focus:ring-zinc-900 transition-colors backdrop-blur-sm"
                     >
                       <span className="flex items-center gap-2">
                         <ArrowUpDown className="w-4 h-4 text-zinc-500" />
@@ -1093,7 +1138,7 @@ function App() {
                           return (
                             <tr
                               key={player.id}
-                              className="hover:bg-zinc-50 dark:hover:bg-zinc-950"
+                              className="hover:bg-zinc-50 dark:hover:bg-zinc-900"
                             >
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 {index + 1}

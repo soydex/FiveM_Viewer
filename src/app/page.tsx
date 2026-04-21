@@ -212,7 +212,7 @@ function App() {
       console.warn("Erreur lors du chargement des favoris:", error);
       try {
         window.localStorage.removeItem("favorites");
-      } catch (e) {}
+      } catch (e) { }
     }
     return [];
   };
@@ -643,17 +643,21 @@ function App() {
                     disabled={loading || !serverId.trim()}
                     aria-label={t("reloadServerData")}
                     title={t("reloadServerData")}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    <Play className="w-4 h-4" />
-                    {loading ? t("loading") : t("reload")}
+                    className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[16px] bg-gradient-to-t from-[#8122b0] to-[#dc98fd] active:scale-95">
+                    <span className="w-full h-full flex items-center gap-2 px-8 py-3 bg-[#B931FC] text-white rounded-[14px] bg-gradient-to-t from-[#a62ce2] to-[#c045fc]">
+                      <Play className="w-4 h-4" />
+                      {loading ? t("loading") : t("reload")}
+                    </span>
                   </button>
+
+           
+
 
                   <button
                     onClick={() => setAutoRefresh(!autoRefresh)}
                     className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${autoRefresh
-                        ? "bg-green-600 text-white hover:bg-green-700"
-                        : "bg-zinc-950 text-white hover:bg-zinc-950"
+                      ? "bg-green-600 text-white hover:bg-green-700"
+                      : "bg-zinc-950 text-white hover:bg-zinc-950"
                       }`}
                     title={
                       autoRefresh
@@ -772,8 +776,8 @@ function App() {
                     key={tab.id}
                     onClick={() => setCurrentTab(tab.id as TabType)}
                     className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${currentTab === tab.id
-                        ? "border-purple-500 text-purple-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                      ? "border-purple-500 text-purple-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                       }`}
                   >
                     <tab.icon className="w-4 h-4" />
@@ -829,8 +833,8 @@ function App() {
 
                     <div
                       className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top z-50 ${showHistory
-                          ? "opacity-100 scale-y-100 pointer-events-auto"
-                          : "opacity-0 scale-y-95 pointer-events-none"
+                        ? "opacity-100 scale-y-100 pointer-events-auto"
+                        : "opacity-0 scale-y-95 pointer-events-none"
                         }`}
                     >
                       <div className="max-h-96 overflow-y-auto">
@@ -844,8 +848,8 @@ function App() {
                               setServersHistoryHoveredId(null)
                             }
                             className={`group relative transition-colors duration-150 ${index !== serverHistory.length - 1
-                                ? "border-b border-zinc-100 dark:border-zinc-700"
-                                : ""
+                              ? "border-b border-zinc-100 dark:border-zinc-700"
+                              : ""
                               } ${serversHistoryHoveredId === server.id
                                 ? "bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-zinc-700/50"
                                 : "hover:bg-gradient-to-r hover:from-purple-25 hover:to-transparent dark:hover:from-zinc-700/30 dark:hover:to-transparent"
@@ -947,8 +951,8 @@ function App() {
                                   setShowSortDropdown(false);
                                 }}
                                 className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 ${sortField === option.field
-                                    ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                                    : "text-gray-700 dark:text-gray-300"
+                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                  : "text-gray-700 dark:text-gray-300"
                                   }`}
                               >
                                 {option.label}
@@ -967,8 +971,8 @@ function App() {
                                 setShowSortDropdown(false);
                               }}
                               className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 flex items-center gap-2 ${sortOrder === "asc"
-                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                                  : "text-gray-700 dark:text-gray-300"
+                                ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                : "text-gray-700 dark:text-gray-300"
                                 }`}
                             >
                               <ArrowUp className="w-4 h-4" />
@@ -980,8 +984,8 @@ function App() {
                                 setShowSortDropdown(false);
                               }}
                               className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 flex items-center gap-2 ${sortOrder === "desc"
-                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                                  : "text-gray-700 dark:text-gray-300"
+                                ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                : "text-gray-700 dark:text-gray-300"
                                 }`}
                             >
                               <ArrowDown className="w-4 h-4" />
@@ -1052,10 +1056,10 @@ function App() {
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 <span
                                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${player.ping < 50
-                                      ? "bg-green-100 text-green-800"
-                                      : player.ping < 100
-                                        ? "bg-yellow-100 text-yellow-800"
-                                        : "bg-red-100 text-red-800"
+                                    ? "bg-green-100 text-green-800"
+                                    : player.ping < 100
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-red-100 text-red-800"
                                     }`}
                                 >
                                   {player.ping}ms
@@ -1095,8 +1099,8 @@ function App() {
                                 <button
                                   onClick={() => toggleFavorite(player)}
                                   className={`p-1 rounded ${isPlayerFavorite(player.id)
-                                      ? "text-yellow-500 hover:text-yellow-600"
-                                      : "text-gray-400 hover:text-gray-500"
+                                    ? "text-yellow-500 hover:text-yellow-600"
+                                    : "text-gray-400 hover:text-gray-500"
                                     }`}
                                   title={
                                     isPlayerFavorite(player.id)
@@ -1203,8 +1207,8 @@ function App() {
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <span
                                 className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${isOnline
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-zinc-100 text-gray-800"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-zinc-100 text-gray-800"
                                   }`}
                               >
                                 {isOnline ? "En ligne" : "Hors ligne"}
