@@ -26,10 +26,11 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  
-  const messagesModule = locale === "en" 
-    ? await import("../../../messages/en.json") 
-    : await import("../../../messages/fr.json");
+
+  const messagesModule =
+    locale === "en"
+      ? await import("../../../messages/en.json")
+      : await import("../../../messages/fr.json");
   const messages = messagesModule.default || messagesModule;
 
   return (

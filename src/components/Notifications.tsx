@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import type { Notification, NotificationType } from "../hooks/useNotifications";
-import { CheckCircle2, AlertCircle, AlertTriangle, Info, X } from "lucide-react";
+import {
+  CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
+  Info,
+  X,
+} from "lucide-react";
 
 interface NotificationToastProps {
   notification: Notification;
@@ -116,7 +122,7 @@ function NotificationToast({ notification, onClose }: NotificationToastProps) {
       <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gray-100/50 dark:bg-zinc-800/50">
         <div
           className={`h-full transition-all duration-100 ease-linear ${getProgressColor(
-            notification.type
+            notification.type,
           )}`}
           style={{ width: `${progressPercentage}%` }}
         />
@@ -142,10 +148,7 @@ export function NotificationContainer({
       <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
         {notifications.map((notification) => (
           <div key={notification.id} className="w-full max-w-sm">
-            <NotificationToast
-              notification={notification}
-              onClose={onClose}
-            />
+            <NotificationToast notification={notification} onClose={onClose} />
           </div>
         ))}
       </div>

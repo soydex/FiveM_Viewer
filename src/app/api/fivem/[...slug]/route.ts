@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ slug: string[] }> }
+  { params }: { params: Promise<{ slug: string[] }> },
 ) {
   const { slug } = await params;
   console.log(`[API Proxy] Slug: ${slug.join("/")}`);
@@ -24,7 +24,7 @@ export async function GET(
     if (!response.ok) {
       return NextResponse.json(
         { error: `FiveM API returned ${response.status}` },
-        { status: response.status }
+        { status: response.status },
       );
     }
 

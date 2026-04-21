@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, Suspense, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  Suspense,
+  useRef,
+} from "react";
 import dynamic from "next/dynamic";
 import { useTranslations, useLocale } from "next-intl";
 import { NotificationContainer } from "../../components/Notifications";
@@ -214,7 +221,7 @@ function App() {
       console.warn("Erreur lors du chargement des favoris:", error);
       try {
         window.localStorage.removeItem("favorites");
-      } catch (e) { }
+      } catch (e) {}
     }
     return [];
   };
@@ -248,9 +255,20 @@ function App() {
   const { notifications, addNotification, removeNotification } =
     useNotifications();
 
+  const [isMac, setIsMac] = useState(false);
+
+  useEffect(() => {
+    if (typeof navigator !== "undefined") {
+      setIsMac(navigator.userAgent.includes("Mac"));
+    }
+  }, []);
+
   const fetcher = useCallback(async (url: string) => {
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`Erreur lors de la récupération des données: ${res.status} ${res.statusText}`);
+    if (!res.ok)
+      throw new Error(
+        `Erreur lors de la récupération des données: ${res.status} ${res.statusText}`,
+      );
     return res.json();
   }, []);
 
@@ -285,7 +303,7 @@ function App() {
           iconUrl: serverData?.iconVersion
             ? `https://servers-live.fivem.net/servers/icon/${serverIdToUse}/${serverData.iconVersion}.png`
             : serverData?.vars?.banner_detail ||
-            `/api/fivem/servers/icon/${serverIdToUse}`,
+              `/api/fivem/servers/icon/${serverIdToUse}`,
         });
 
         setLastRefreshTimestamp(Date.now());
@@ -347,7 +365,7 @@ function App() {
       iconUrl: serverData?.iconVersion
         ? `https://servers-live.fivem.net/servers/icon/${data.EP}/${serverData.iconVersion}.png`
         : serverData?.vars?.banner_detail ||
-        `/api/fivem/servers/icon/${data.EP}`,
+          `/api/fivem/servers/icon/${data.EP}`,
     };
 
     return [
@@ -456,10 +474,18 @@ function App() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
-      if (showHistory && historyRef.current && !historyRef.current.contains(target)) {
+      if (
+        showHistory &&
+        historyRef.current &&
+        !historyRef.current.contains(target)
+      ) {
         setShowHistory(false);
       }
-      if (showSortDropdown && sortRef.current && !sortRef.current.contains(target)) {
+      if (
+        showSortDropdown &&
+        sortRef.current &&
+        !sortRef.current.contains(target)
+      ) {
         setShowSortDropdown(false);
       }
     };
@@ -653,7 +679,7 @@ function App() {
                 <div className="flex items-center space-x-2">
                   <div className="flex h-10 items-center bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-[10px] focus-within:ring-2 focus-within:ring-purple-500/50 transition-all duration-150 ease-in-out px-3 gap-2">
                     <div className="flex items-center gap-1.5">
-                      {navigator.userAgent.includes("Mac") ? (
+                      {isMac ? (
                         <kbd className="bg-zinc-100 dark:bg-zinc-800 rounded px-1.5 py-0.5 text-[10px] font-medium border border-zinc-300 dark:border-zinc-700 text-zinc-500 flex items-center justify-center min-w-[20px]">
                           <Command className="w-3 h-3" />
                         </kbd>
@@ -662,7 +688,9 @@ function App() {
                           CTRL
                         </kbd>
                       )}
-                      <span className="text-zinc-500 text-[10px] font-medium">+ R</span>
+                      <span className="text-zinc-500 text-[10px] font-medium">
+                        + K
+                      </span>
                     </div>
 
                     <div className="w-[1px] h-4 bg-zinc-300 dark:bg-zinc-800 mx-1" />
@@ -683,36 +711,45 @@ function App() {
                       }}
                       className="bg-transparent text-gray-900 dark:text-[#f4f4f5] px-1 py-1 focus:outline-none w-32 text-sm placeholder-gray-500 dark:placeholder-zinc-500"
                     />
-                    <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest ml-1">ID</span>
+                    <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest ml-1">
+                      ID
+                    </span>
                   </div>
                   <button
                     onClick={() => fetchServerData()}
                     disabled={loading || !serverId.trim()}
                     aria-label={t("reloadServerData")}
                     title={t("reloadServerData")}
-                    className="relative cursor-pointer opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#8122b0] to-[#dc98fd] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                    className="relative cursor-pointer opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#8122b0] to-[#dc98fd] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                     <span className="flex items-center gap-2 px-6 py-2 bg-[#B931FC] text-white rounded-[10px] bg-gradient-to-t from-[#a62ce2] to-[#c045fc] font-medium whitespace-nowrap">
-                      <Play className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+                      <Play
+                        className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+                      />
                       {loading ? t("loading") : t("reload")}
                     </span>
                   </button>
 
                   <button
                     onClick={() => setAutoRefresh(!autoRefresh)}
-                    className={`relative cursor-pointer opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] active:scale-95 ${autoRefresh
-                      ? "bg-gradient-to-t from-[#1d4ed8] to-[#60a5fa]"
-                      : "bg-gradient-to-t from-zinc-700 to-zinc-500"
-                      }`}
+                    className={`relative cursor-pointer opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] active:scale-95 ${
+                      autoRefresh
+                        ? "bg-gradient-to-t from-[#1d4ed8] to-[#60a5fa]"
+                        : "bg-gradient-to-t from-zinc-700 to-zinc-500"
+                    }`}
                     title={
                       autoRefresh
                         ? t("disableAutoRefresh")
                         : t("enableAutoRefresh")
                     }
                   >
-                    <span className={`flex items-center gap-2 px-6 py-2 text-white rounded-[10px] font-medium whitespace-nowrap min-w-[150px] ${autoRefresh
-                      ? "bg-gradient-to-t from-[#2563eb] to-[#3b82f6]"
-                      : "bg-gradient-to-t from-zinc-800 to-zinc-700"
-                      }`}>
+                    <span
+                      className={`flex items-center gap-2 px-6 py-2 text-white rounded-[10px] font-medium whitespace-nowrap min-w-[150px] ${
+                        autoRefresh
+                          ? "bg-gradient-to-t from-[#2563eb] to-[#3b82f6]"
+                          : "bg-gradient-to-t from-zinc-800 to-zinc-700"
+                      }`}
+                    >
                       <RefreshCw
                         className={`w-4 h-4 ${autoRefresh ? "animate-spin" : ""}`}
                       />
@@ -728,13 +765,10 @@ function App() {
               <div className="mt-4 space-y-2">
                 <div className="flex items-center space-x-4">
                   <div className="text-sm">
-                    <span className="font-semibold">{serverInfo.currentPlayers}</span>
-                    {" "}
-                    /
-                    {" "}
-                    <span>{serverInfo.maxPlayers}</span>
-                    {" "}
-                    {t("playersCount")}
+                    <span className="font-semibold">
+                      {serverInfo.currentPlayers}
+                    </span>{" "}
+                    / <span>{serverInfo.maxPlayers}</span> {t("playersCount")}
                   </div>
                   <div className="flex items-center space-x-2">
                     {serverInfo.iconUrl && (
@@ -827,10 +861,11 @@ function App() {
                   <button
                     key={tab.id}
                     onClick={() => setCurrentTab(tab.id as TabType)}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${currentTab === tab.id
-                      ? "border-purple-500 text-purple-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                      }`}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                      currentTab === tab.id
+                        ? "border-purple-500 text-purple-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    }`}
                   >
                     <tab.icon className="w-4 h-4" />
                     {tab.label} {tab.count !== undefined && `(${tab.count})`}
@@ -859,43 +894,65 @@ function App() {
                   <div className="relative" ref={historyRef}>
                     <button
                       onClick={() => setShowHistory(!showHistory)}
-                      className={`w-full group relative cursor-pointer opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] active:scale-[0.98] ${showHistory
-                        ? "bg-gradient-to-t from-[#8122b0] to-[#dc98fd]"
-                        : "bg-gradient-to-t from-zinc-700 to-zinc-500"
-                        }`}
+                      className={`w-full group relative cursor-pointer opacity-90 hover:opacity-100 transition-all p-[2px] rounded-[12px] active:scale-[0.98] ${
+                        showHistory
+                          ? "bg-gradient-to-t from-[#8122b0] to-[#dc98fd]"
+                          : "bg-zinc-200 dark:bg-black bg-gradient-to-t from-zinc-200 to-zinc-300 dark:from-zinc-700 dark:to-zinc-500"
+                      }`}
                     >
-                      <div className={`flex items-center gap-3 px-4 py-2 text-white rounded-[10px] font-medium transition-all ${showHistory
-                        ? "bg-gradient-to-t from-[#a62ce2] to-[#c045fc]"
-                        : "bg-gradient-to-t from-zinc-800 to-zinc-700"
-                        }`}>
+                      <div
+                        className={`flex items-center gap-3 px-4 py-2 rounded-[10px] font-medium transition-all ${
+                          showHistory
+                            ? "bg-gradient-to-t from-[#a62ce2] to-[#c045fc] text-white"
+                            : "bg-white text-zinc-900 dark:text-white dark:bg-gradient-to-t dark:from-zinc-800 dark:to-zinc-700"
+                        }`}
+                      >
                         <div className="flex items-center gap-3 flex-1">
-                          <div className={`p-2 rounded-lg transition-colors ${showHistory ? "" : ""
-                            }`}>
-                            <Clock className="w-4 h-4" />
+                          <div
+                            className={`p-2 rounded-lg transition-colors ${
+                              showHistory
+                                ? ""
+                                : "bg-zinc-100 dark:bg-transparent"
+                            }`}
+                          >
+                            <Clock
+                              className={`w-4 h-4 ${showHistory ? "" : "text-zinc-500 dark:text-white"}`}
+                            />
                           </div>
                           <div className="text-left">
-                            <div className="font-semibold text-sm">
+                            <div
+                              className={`font-semibold text-sm ${showHistory ? "text-white" : "text-zinc-900 dark:text-white"}`}
+                            >
                               {t("recentServers")}
                             </div>
-                            <div className={`text-xs transition-colors ${showHistory ? "text-purple-100" : "text-zinc-400"
-                              }`}>
+                            <div
+                              className={`text-xs transition-colors ${
+                                showHistory
+                                  ? "text-purple-100"
+                                  : "text-zinc-500 dark:text-zinc-400"
+                              }`}
+                            >
                               {serverHistory.length}{" "}
                               {t("server", { count: serverHistory.length })}
                             </div>
                           </div>
                         </div>
                         <ChevronDown
-                          className={`w-5 h-5 transition-transform duration-300 ${showHistory ? "rotate-180 text-white" : "text-zinc-400"
-                            }`}
+                          className={`w-5 h-5 transition-transform duration-300 ${
+                            showHistory
+                              ? "rotate-180 text-white"
+                              : "text-zinc-400 dark:text-zinc-400"
+                          }`}
                         />
                       </div>
                     </button>
 
                     <div
-                      className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top z-50 ${showHistory
-                        ? "opacity-100 scale-y-100 pointer-events-auto"
-                        : "opacity-0 scale-y-95 pointer-events-none"
-                        }`}
+                      className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top z-50 ${
+                        showHistory
+                          ? "opacity-100 scale-y-100 pointer-events-auto"
+                          : "opacity-0 scale-y-95 pointer-events-none"
+                      }`}
                     >
                       <div className="max-h-96 overflow-y-auto">
                         {serverHistory.map((server, index) => (
@@ -907,13 +964,15 @@ function App() {
                             onMouseLeave={() =>
                               setServersHistoryHoveredId(null)
                             }
-                            className={`group relative transition-colors duration-150 ${index !== serverHistory.length - 1
-                              ? "border-b border-zinc-100 dark:border-zinc-700"
-                              : ""
-                              } ${serversHistoryHoveredId === server.id
+                            className={`group relative transition-colors duration-150 ${
+                              index !== serverHistory.length - 1
+                                ? "border-b border-zinc-100 dark:border-zinc-700"
+                                : ""
+                            } ${
+                              serversHistoryHoveredId === server.id
                                 ? "bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-zinc-700/50"
                                 : "hover:bg-gradient-to-r hover:from-purple-25 hover:to-transparent dark:hover:from-zinc-700/30 dark:hover:to-transparent"
-                              }`}
+                            }`}
                           >
                             <button
                               onClick={() => {
@@ -1011,7 +1070,9 @@ function App() {
                             className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 dark:focus:bg-zinc-800 dark:focus:text-zinc-50 ${sortField === option.field ? "font-medium" : ""}`}
                           >
                             <span className="flex h-4 w-4 items-center justify-center mr-2">
-                              {sortField === option.field && <Check className="h-4 w-4" />}
+                              {sortField === option.field && (
+                                <Check className="h-4 w-4" />
+                              )}
                             </span>
                             {option.label}
                           </button>
@@ -1029,7 +1090,9 @@ function App() {
                         >
                           <span className="flex items-center">
                             <span className="flex h-4 w-4 items-center justify-center mr-2">
-                              {sortOrder === "asc" && <Check className="h-4 w-4" />}
+                              {sortOrder === "asc" && (
+                                <Check className="h-4 w-4" />
+                              )}
                             </span>
                             {t("ascending")}
                           </span>
@@ -1044,7 +1107,9 @@ function App() {
                         >
                           <span className="flex items-center">
                             <span className="flex h-4 w-4 items-center justify-center mr-2">
-                              {sortOrder === "desc" && <Check className="h-4 w-4" />}
+                              {sortOrder === "desc" && (
+                                <Check className="h-4 w-4" />
+                              )}
                             </span>
                             {t("descending")}
                           </span>
@@ -1085,7 +1150,11 @@ function App() {
                               {t("id")}
                               {sortField === "id" ? (
                                 <span className="text-purple-600 dark:text-purple-400">
-                                  {sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                                  {sortOrder === "asc" ? (
+                                    <ArrowUp className="w-3 h-3" />
+                                  ) : (
+                                    <ArrowDown className="w-3 h-3" />
+                                  )}
                                 </span>
                               ) : (
                                 <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
@@ -1100,7 +1169,11 @@ function App() {
                               {t("name")}
                               {sortField === "name" ? (
                                 <span className="text-purple-600 dark:text-purple-400">
-                                  {sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                                  {sortOrder === "asc" ? (
+                                    <ArrowUp className="w-3 h-3" />
+                                  ) : (
+                                    <ArrowDown className="w-3 h-3" />
+                                  )}
                                 </span>
                               ) : (
                                 <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
@@ -1115,7 +1188,11 @@ function App() {
                               {t("ping")}
                               {sortField === "ping" ? (
                                 <span className="text-purple-600 dark:text-purple-400">
-                                  {sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                                  {sortOrder === "asc" ? (
+                                    <ArrowUp className="w-3 h-3" />
+                                  ) : (
+                                    <ArrowDown className="w-3 h-3" />
+                                  )}
                                 </span>
                               ) : (
                                 <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
@@ -1151,12 +1228,13 @@ function App() {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 <span
-                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${player.ping < 50
-                                    ? "bg-green-100 text-green-800"
-                                    : player.ping < 100
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-red-100 text-red-800"
-                                    }`}
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                    player.ping < 50
+                                      ? "bg-green-100 text-green-800"
+                                      : player.ping < 100
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-red-100 text-red-800"
+                                  }`}
                                 >
                                   {player.ping}ms
                                 </span>
@@ -1194,10 +1272,11 @@ function App() {
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 <button
                                   onClick={() => toggleFavorite(player)}
-                                  className={`p-1 rounded ${isPlayerFavorite(player.id)
-                                    ? "text-yellow-500 hover:text-yellow-600"
-                                    : "text-gray-400 hover:text-gray-500"
-                                    }`}
+                                  className={`p-1 rounded ${
+                                    isPlayerFavorite(player.id)
+                                      ? "text-yellow-500 hover:text-yellow-600"
+                                      : "text-gray-400 hover:text-gray-500"
+                                  }`}
                                   title={
                                     isPlayerFavorite(player.id)
                                       ? "Retirer des favoris"
@@ -1302,10 +1381,11 @@ function App() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <span
-                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${isOnline
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-zinc-100 text-gray-800"
-                                  }`}
+                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  isOnline
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-zinc-100 text-gray-800"
+                                }`}
                               >
                                 {isOnline ? "En ligne" : "Hors ligne"}
                               </span>

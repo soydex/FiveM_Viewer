@@ -212,7 +212,7 @@ function App() {
       console.warn("Erreur lors du chargement des favoris:", error);
       try {
         window.localStorage.removeItem("favorites");
-      } catch (e) { }
+      } catch (e) {}
     }
     return [];
   };
@@ -246,7 +246,10 @@ function App() {
 
   const fetcher = useCallback(async (url: string) => {
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`Erreur lors de la récupération des données: ${res.status} ${res.statusText}`);
+    if (!res.ok)
+      throw new Error(
+        `Erreur lors de la récupération des données: ${res.status} ${res.statusText}`,
+      );
     return res.json();
   }, []);
 
@@ -281,7 +284,7 @@ function App() {
           iconUrl: serverData?.iconVersion
             ? `https://servers-live.fivem.net/servers/icon/${serverIdToUse}/${serverData.iconVersion}.png`
             : serverData?.vars?.banner_detail ||
-            `/api/fivem/servers/icon/${serverIdToUse}`,
+              `/api/fivem/servers/icon/${serverIdToUse}`,
         });
 
         setLastRefreshTimestamp(Date.now());
@@ -343,7 +346,7 @@ function App() {
       iconUrl: serverData?.iconVersion
         ? `https://servers-live.fivem.net/servers/icon/${data.EP}/${serverData.iconVersion}.png`
         : serverData?.vars?.banner_detail ||
-        `/api/fivem/servers/icon/${data.EP}`,
+          `/api/fivem/servers/icon/${data.EP}`,
     };
 
     return [
@@ -643,22 +646,21 @@ function App() {
                     disabled={loading || !serverId.trim()}
                     aria-label={t("reloadServerData")}
                     title={t("reloadServerData")}
-                    className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[16px] bg-gradient-to-t from-[#8122b0] to-[#dc98fd] active:scale-95">
+                    className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[16px] bg-gradient-to-t from-[#8122b0] to-[#dc98fd] active:scale-95"
+                  >
                     <span className="w-full h-full flex items-center gap-2 px-8 py-3 bg-[#B931FC] text-white rounded-[14px] bg-gradient-to-t from-[#a62ce2] to-[#c045fc]">
                       <Play className="w-4 h-4" />
                       {loading ? t("loading") : t("reload")}
                     </span>
                   </button>
 
-           
-
-
                   <button
                     onClick={() => setAutoRefresh(!autoRefresh)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${autoRefresh
-                      ? "bg-green-600 text-white hover:bg-green-700"
-                      : "bg-zinc-950 text-white hover:bg-zinc-950"
-                      }`}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${
+                      autoRefresh
+                        ? "bg-green-600 text-white hover:bg-green-700"
+                        : "bg-zinc-950 text-white hover:bg-zinc-950"
+                    }`}
                     title={
                       autoRefresh
                         ? t("disableAutoRefresh")
@@ -775,10 +777,11 @@ function App() {
                   <button
                     key={tab.id}
                     onClick={() => setCurrentTab(tab.id as TabType)}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${currentTab === tab.id
-                      ? "border-purple-500 text-purple-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                      }`}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                      currentTab === tab.id
+                        ? "border-purple-500 text-purple-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    }`}
                   >
                     <tab.icon className="w-4 h-4" />
                     {tab.label} {tab.count !== undefined && `(${tab.count})`}
@@ -825,17 +828,19 @@ function App() {
                           </div>
                         </div>
                         <ChevronDown
-                          className={`w-5 h-5 text-purple-600 dark:text-purple-400 transition-transform duration-300 ${showHistory ? "rotate-180" : ""
-                            }`}
+                          className={`w-5 h-5 text-purple-600 dark:text-purple-400 transition-transform duration-300 ${
+                            showHistory ? "rotate-180" : ""
+                          }`}
                         />
                       </div>
                     </button>
 
                     <div
-                      className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top z-50 ${showHistory
-                        ? "opacity-100 scale-y-100 pointer-events-auto"
-                        : "opacity-0 scale-y-95 pointer-events-none"
-                        }`}
+                      className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top z-50 ${
+                        showHistory
+                          ? "opacity-100 scale-y-100 pointer-events-auto"
+                          : "opacity-0 scale-y-95 pointer-events-none"
+                      }`}
                     >
                       <div className="max-h-96 overflow-y-auto">
                         {serverHistory.map((server, index) => (
@@ -847,13 +852,15 @@ function App() {
                             onMouseLeave={() =>
                               setServersHistoryHoveredId(null)
                             }
-                            className={`group relative transition-colors duration-150 ${index !== serverHistory.length - 1
-                              ? "border-b border-zinc-100 dark:border-zinc-700"
-                              : ""
-                              } ${serversHistoryHoveredId === server.id
+                            className={`group relative transition-colors duration-150 ${
+                              index !== serverHistory.length - 1
+                                ? "border-b border-zinc-100 dark:border-zinc-700"
+                                : ""
+                            } ${
+                              serversHistoryHoveredId === server.id
                                 ? "bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-zinc-700/50"
                                 : "hover:bg-gradient-to-r hover:from-purple-25 hover:to-transparent dark:hover:from-zinc-700/30 dark:hover:to-transparent"
-                              }`}
+                            }`}
                           >
                             <button
                               onClick={() => {
@@ -950,10 +957,11 @@ function App() {
                                   setSortField(option.field);
                                   setShowSortDropdown(false);
                                 }}
-                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 ${sortField === option.field
-                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                                  : "text-gray-700 dark:text-gray-300"
-                                  }`}
+                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 ${
+                                  sortField === option.field
+                                    ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                    : "text-gray-700 dark:text-gray-300"
+                                }`}
                               >
                                 {option.label}
                               </button>
@@ -970,10 +978,11 @@ function App() {
                                 setSortOrder("asc");
                                 setShowSortDropdown(false);
                               }}
-                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 flex items-center gap-2 ${sortOrder === "asc"
-                                ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                                : "text-gray-700 dark:text-gray-300"
-                                }`}
+                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 flex items-center gap-2 ${
+                                sortOrder === "asc"
+                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                  : "text-gray-700 dark:text-gray-300"
+                              }`}
                             >
                               <ArrowUp className="w-4 h-4" />
                               {t("ascending")}
@@ -983,10 +992,11 @@ function App() {
                                 setSortOrder("desc");
                                 setShowSortDropdown(false);
                               }}
-                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 flex items-center gap-2 ${sortOrder === "desc"
-                                ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                                : "text-gray-700 dark:text-gray-300"
-                                }`}
+                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-950 flex items-center gap-2 ${
+                                sortOrder === "desc"
+                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                  : "text-gray-700 dark:text-gray-300"
+                              }`}
                             >
                               <ArrowDown className="w-4 h-4" />
                               {t("descending")}
@@ -1055,12 +1065,13 @@ function App() {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 <span
-                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${player.ping < 50
-                                    ? "bg-green-100 text-green-800"
-                                    : player.ping < 100
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-red-100 text-red-800"
-                                    }`}
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                    player.ping < 50
+                                      ? "bg-green-100 text-green-800"
+                                      : player.ping < 100
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-red-100 text-red-800"
+                                  }`}
                                 >
                                   {player.ping}ms
                                 </span>
@@ -1098,10 +1109,11 @@ function App() {
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 <button
                                   onClick={() => toggleFavorite(player)}
-                                  className={`p-1 rounded ${isPlayerFavorite(player.id)
-                                    ? "text-yellow-500 hover:text-yellow-600"
-                                    : "text-gray-400 hover:text-gray-500"
-                                    }`}
+                                  className={`p-1 rounded ${
+                                    isPlayerFavorite(player.id)
+                                      ? "text-yellow-500 hover:text-yellow-600"
+                                      : "text-gray-400 hover:text-gray-500"
+                                  }`}
                                   title={
                                     isPlayerFavorite(player.id)
                                       ? "Retirer des favoris"
@@ -1206,10 +1218,11 @@ function App() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <span
-                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${isOnline
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-zinc-100 text-gray-800"
-                                  }`}
+                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  isOnline
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-zinc-100 text-gray-800"
+                                }`}
                               >
                                 {isOnline ? "En ligne" : "Hors ligne"}
                               </span>

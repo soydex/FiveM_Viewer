@@ -105,6 +105,10 @@
     "daysAgo": "Il y a {count}j",
     "noSearchResults": "Aucun résultat trouvé pour votre recherche.",
     "clearSearch": "Effacer la recherche",
-    "SupportMe": "Soutenez-moi"
+    "SupportMe": "Soutenez-moi",
+    "notFoundTitle": "Page non trouvée",
+    "notFoundDescription": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "redirecting": "Redirection vers la page d'accueil dans {seconds} secondes...",
+    "goBack": "Retourner à l'accueil"
   }
 }
