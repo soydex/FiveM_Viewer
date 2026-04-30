@@ -10,6 +10,8 @@ export async function GET(
   const path = slug.join("/");
   const url = `https://servers-frontend.fivem.net/api/${path}`;
 
+  console.log(`[API Proxy] Fetching: ${url}`);
+
   try {
     const response = await fetch(url, {
       headers: {
@@ -18,12 +20,15 @@ export async function GET(
         Referer: "https://servers.fivem.net/",
         Origin: "https://servers.fivem.net",
       },
-      // Pas de cache pour les tests
     });
 
+    console.log(`[API Proxy] Response Status: ${response.status}`);
+
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[API Proxy] Error from FiveM: ${errorText}`);
       return NextResponse.json(
-        { error: `FiveM API returned ${response.status}` },
+        { error: `FiveM API returned ${response.status}`, details: errorText },
         { status: response.status },
       );
     }

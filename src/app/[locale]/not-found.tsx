@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FileQuestion, Home } from "lucide-react";
-import { Link } from "../../../routing";
+import { Link } from "../../routing";
 
 export default function NotFound() {
   const t = useTranslations("common");

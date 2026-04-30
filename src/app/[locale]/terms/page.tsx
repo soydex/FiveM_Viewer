@@ -112,7 +112,7 @@ const Terms = async ({ params }: { params: Promise<{ locale: string }> }) => {
         <h1>Error: {error.message}</h1>
         <pre>{error.stack}</pre>
         <hr className="my-4" />
-        <p>Current Locale: {locale}</p>
+        <p>Current Locale:</p>
       </div>
     );
   }

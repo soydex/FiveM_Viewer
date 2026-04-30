@@ -35,6 +35,8 @@ import {
   Clock,
   Check,
   Command,
+  UserPlus,
+  Plus,
 } from "lucide-react";
 import Footer from "../../components/Footer";
 import TopServ from "../../components/TopServ";
@@ -93,6 +95,12 @@ type TabType = "players" | "favorites" | "statistics";
 
 type SortField = "id" | "name" | "ping";
 type SortOrder = "asc" | "desc";
+type SearchMode = "contains" | "startsWith" | "endsWith";
+
+interface FavoritePlayer {
+  name: string;
+  lastKnownId: number;
+}
 
 interface ServerHistory {
   id: string;
@@ -209,12 +217,21 @@ function App() {
     [t, locale],
   );
 
-  const loadFavoritesFromStorage = () => {
+  const loadFavoritesFromStorage = (): FavoritePlayer[] => {
     if (typeof window === "undefined" || !window.localStorage) return [];
     try {
       const savedFavorites = window.localStorage.getItem("favorites");
       if (savedFavorites) {
         const parsed = JSON.parse(savedFavorites);
+        // Migration: convert old format (Player[]) to new format (FavoritePlayer[])
+        if (Array.isArray(parsed) && parsed.length > 0 && !('lastKnownId' in parsed[0]) && 'id' in parsed[0]) {
+          const migrated: FavoritePlayer[] = parsed.map((old: Player) => ({
+            name: old.name,
+            lastKnownId: old.id,
+          }));
+          window.localStorage.setItem("favorites", JSON.stringify(migrated));
+          return migrated;
+        }
         return parsed;
       }
     } catch (error) {
@@ -231,9 +248,11 @@ function App() {
   const [serverInfo, setServerInfo] = useState<ServerInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [favorites, setFavorites] = useState<Player[]>(
+  const [favorites, setFavorites] = useState<FavoritePlayer[]>(
     loadFavoritesFromStorage,
   );
+  const [searchMode, setSearchMode] = useState<SearchMode>("contains");
+  const [addFavoriteName, setAddFavoriteName] = useState("");
   const [serverHistory, setServerHistory] = useState<ServerHistory[]>([]);
   const historyRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
@@ -353,23 +372,7 @@ function App() {
   } = useSWR(!serverId.trim() ? "/api/fivem/servers/top/fr" : null, fetcher);
 
   const topServers = useMemo(() => {
-    if (!topServersRawData) return [];
-
-    const data = topServersRawData;
-    const serverData = data.Data?.Data;
-    const topServer: TopServer = {
-      id: data.EP || data.Data?.EndPoint || "",
-      name: cleanFiveMColors(serverData?.hostname || `Serveur ${data.EP}`),
-      currentPlayers: serverData?.clients || 0,
-      maxPlayers: serverData?.sv_maxclients || 0,
-      iconUrl: serverData?.iconVersion
-        ? `https://servers-live.fivem.net/servers/icon/${data.EP}/${serverData.iconVersion}.png`
-        : serverData?.vars?.banner_detail ||
-          `/api/fivem/servers/icon/${data.EP}`,
-    };
-
-    return [
-      topServer,
+    const defaults: TopServer[] = [
       {
         id: "4r3dp",
         name: "Los Santos Life",
@@ -392,6 +395,31 @@ function App() {
         iconUrl: "/api/fivem/servers/icon/n5x7m",
       },
     ];
+
+    if (!topServersRawData) return defaults;
+
+    try {
+      const data = topServersRawData;
+      const serverData = data.Data?.Data;
+      
+      if (!data.EP && !data.Data?.EndPoint) return defaults;
+
+      const topServer: TopServer = {
+        id: data.EP || data.Data?.EndPoint || "",
+        name: cleanFiveMColors(serverData?.hostname || `Serveur ${data.EP}`),
+        currentPlayers: serverData?.clients || 0,
+        maxPlayers: serverData?.sv_maxclients || 0,
+        iconUrl: serverData?.iconVersion
+          ? `https://servers-live.fivem.net/servers/icon/${data.EP}/${serverData.iconVersion}.png`
+          : serverData?.vars?.banner_detail ||
+            `/api/fivem/servers/icon/${data.EP}`,
+      };
+
+      return [topServer, ...defaults];
+    } catch (e) {
+      console.error("Error parsing top servers data:", e);
+      return defaults;
+    }
   }, [topServersRawData]);
 
   const [hasNotifiedError, setHasNotifiedError] = useState(false);
@@ -493,17 +521,34 @@ function App() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showHistory, showSortDropdown]);
+
+  // Centralized search function — excludes IDs, supports search modes
+  const checkPlayerMatch = useCallback(
+    (playerName: string, term: string, mode: SearchMode): boolean => {
+      if (!term.trim()) return true;
+      const name = playerName.toLowerCase();
+      const search = term.toLowerCase();
+      switch (mode) {
+        case "startsWith":
+          return name.startsWith(search);
+        case "endsWith":
+          return name.endsWith(search);
+        case "contains":
+        default:
+          return name.includes(search);
+      }
+    },
+    [],
+  );
+
   const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
     if (scrollHeight - scrollTop - clientHeight < 200) {
       setDisplayedPlayersLimit((prev) => {
         const newLimit = prev + 50;
         const filteredCount =
-          serverInfo?.players?.filter(
-            (player) =>
-              player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              player.id.toString().includes(searchTerm) ||
-              player.identifiers?.some((id) => id.includes(searchTerm)),
+          serverInfo?.players?.filter((player) =>
+            checkPlayerMatch(player.name, searchTerm, searchMode),
           ).length || 0;
         return Math.min(newLimit, filteredCount);
       });
@@ -541,11 +586,8 @@ function App() {
   const filteredPlayers = useMemo(() => {
     if (!serverInfo?.players) return [];
 
-    const filtered = serverInfo.players.filter(
-      (player) =>
-        player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        player.id.toString().includes(searchTerm) ||
-        player.identifiers?.some((id) => id.includes(searchTerm)),
+    const filtered = serverInfo.players.filter((player) =>
+      checkPlayerMatch(player.name, searchTerm, searchMode),
     );
 
     filtered.sort((a, b) => {
@@ -578,6 +620,8 @@ function App() {
   }, [
     serverInfo?.players,
     searchTerm,
+    searchMode,
+    checkPlayerMatch,
     sortField,
     sortOrder,
     displayedPlayersLimit,
@@ -585,7 +629,9 @@ function App() {
 
   const toggleFavorite = useCallback(
     (player: Player) => {
-      const isCurrentlyFavorite = favorites.some((fav) => fav.id === player.id);
+      const isCurrentlyFavorite = favorites.some(
+        (fav) => fav.name.toLowerCase() === player.name.toLowerCase(),
+      );
 
       if (isCurrentlyFavorite) {
         addNotification({
@@ -600,7 +646,11 @@ function App() {
             ),
           }),
         });
-        setFavorites((prev) => prev.filter((fav) => fav.id !== player.id));
+        setFavorites((prev) =>
+          prev.filter(
+            (fav) => fav.name.toLowerCase() !== player.name.toLowerCase(),
+          ),
+        );
       } else {
         addNotification({
           type: "success",
@@ -614,14 +664,56 @@ function App() {
             ),
           }),
         });
-        setFavorites((prev) => [...prev, player]);
+        setFavorites((prev) => [
+          ...prev,
+          { name: player.name, lastKnownId: player.id },
+        ]);
       }
     },
     [favorites, addNotification, t],
   );
 
-  const isPlayerFavorite = (playerId: number) => {
-    return favorites.some((fav) => fav.id === playerId);
+  const addFavoriteManually = useCallback(() => {
+    const trimmed = addFavoriteName.trim();
+    if (!trimmed) {
+      addNotification({
+        type: "error",
+        title: t("error"),
+        message: t("favoriteNameEmpty"),
+      });
+      return;
+    }
+    const exists = favorites.some(
+      (fav) => fav.name.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (exists) {
+      addNotification({
+        type: "info",
+        title: t("favorites"),
+        message: t("favoriteAlreadyExists"),
+      });
+      return;
+    }
+    setFavorites((prev) => [...prev, { name: trimmed, lastKnownId: 0 }]);
+    setAddFavoriteName("");
+    addNotification({
+      type: "success",
+      title: t("favoriteAdded"),
+      message: t.rich("addedToFavorites", {
+        name: trimmed,
+        strong: (chunks) => (
+          <strong className="font-semibold text-zinc-900 dark:text-zinc-100">
+            {chunks}
+          </strong>
+        ),
+      }),
+    });
+  }, [addFavoriteName, favorites, addNotification, t]);
+
+  const isPlayerFavorite = (playerName: string) => {
+    return favorites.some(
+      (fav) => fav.name.toLowerCase() === playerName.toLowerCase(),
+    );
   };
 
   return (
@@ -1119,15 +1211,38 @@ function App() {
                     )}
                   </div>
                 </div>
-                <div className="relative w-full">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Rechercher un joueur..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-950 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400 w-full ring-1 ring-transparent focus:ring-purple-500 focus:border-purple-500 transition-all"
-                  />
+                <div className="flex items-center gap-2 w-full">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder={t("searchPlaceholder")}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 pr-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-950 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400 w-full ring-1 ring-transparent focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    />
+                  </div>
+                  <div className="flex items-center bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-600 rounded-lg overflow-hidden">
+                    {(
+                      [
+                        { mode: "startsWith" as SearchMode, label: t("searchStartsWith") },
+                        { mode: "contains" as SearchMode, label: t("searchContains") },
+                        { mode: "endsWith" as SearchMode, label: t("searchEndsWith") },
+                      ] as const
+                    ).map((opt) => (
+                      <button
+                        key={opt.mode}
+                        onClick={() => setSearchMode(opt.mode)}
+                        className={`px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap ${
+                          searchMode === opt.mode
+                            ? "bg-purple-600 text-white"
+                            : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 {loading ? (
                   <PlayersTableSkeleton />
@@ -1273,17 +1388,17 @@ function App() {
                                 <button
                                   onClick={() => toggleFavorite(player)}
                                   className={`p-1 rounded ${
-                                    isPlayerFavorite(player.id)
+                                    isPlayerFavorite(player.name)
                                       ? "text-yellow-500 hover:text-yellow-600"
                                       : "text-gray-400 hover:text-gray-500"
                                   }`}
                                   title={
-                                    isPlayerFavorite(player.id)
+                                    isPlayerFavorite(player.name)
                                       ? "Retirer des favoris"
                                       : "Ajouter aux favoris"
                                   }
                                 >
-                                  {isPlayerFavorite(player.id) ? (
+                                  {isPlayerFavorite(player.name) ? (
                                     <Star className="h-5 w-5 fill-yellow-500" />
                                   ) : (
                                     <Star className="h-5 w-5" />
@@ -1297,15 +1412,8 @@ function App() {
                     </table>
                     {(() => {
                       const totalFilteredPlayers =
-                        serverInfo?.players?.filter(
-                          (player) =>
-                            player.name
-                              .toLowerCase()
-                              .includes(searchTerm.toLowerCase()) ||
-                            player.id.toString().includes(searchTerm) ||
-                            player.identifiers?.some((id) =>
-                              id.includes(searchTerm),
-                            ),
+                        serverInfo?.players?.filter((player) =>
+                          checkPlayerMatch(player.name, searchTerm, searchMode),
                         ).length || 0;
 
                       return displayedPlayersLimit < totalFilteredPlayers ? (
@@ -1340,6 +1448,33 @@ function App() {
               <h2 className="text-xl font-semibold mb-4">
                 {t("favoritePlayers")}
               </h2>
+
+              {/* Manual add input */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="relative flex-1">
+                  <UserPlus className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder={t("addFavoriteByNamePlaceholder")}
+                    value={addFavoriteName}
+                    onChange={(e) => setAddFavoriteName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") addFavoriteManually();
+                    }}
+                    className="pl-10 pr-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-950 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400 w-full ring-1 ring-transparent focus:ring-purple-500 focus:border-purple-500 transition-all"
+                  />
+                </div>
+                <button
+                  onClick={addFavoriteManually}
+                  className="relative cursor-pointer opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#8122b0] to-[#dc98fd] active:scale-95"
+                >
+                  <span className="flex items-center gap-2 px-4 py-2 bg-[#B931FC] text-white rounded-[10px] bg-gradient-to-t from-[#a62ce2] to-[#c045fc] font-medium whitespace-nowrap text-sm">
+                    <Plus className="w-4 h-4" />
+                    {t("addFavoriteButton")}
+                  </span>
+                </button>
+              </div>
+
               {favorites.length === 0 ? (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                   {t("noFavoritePlayers")}
@@ -1350,52 +1485,103 @@ function App() {
                     <thead className="bg-zinc-50 dark:bg-zinc-950">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                          ID
+                          {t("name")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                          Nom
+                          {t("id")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                          Statut
+                          {t("ping")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                          Actions
+                          {t("actions")}
                         </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white dark:bg-zinc-950 divide-y divide-zinc-200 dark:divide-zinc-700">
-                      {favorites.map((player) => {
-                        const isOnline = serverInfo?.players.some(
-                          (p) => p.id === player.id,
+                      {favorites.map((fav) => {
+                        // Find this player on the server by NAME (not ID)
+                        const onlinePlayer = serverInfo?.players.find(
+                          (p) =>
+                            p.name.toLowerCase() === fav.name.toLowerCase(),
                         );
+                        const isOnline = !!onlinePlayer;
+                        const displayId = isOnline
+                          ? onlinePlayer.id
+                          : fav.lastKnownId;
+
                         return (
                           <tr
-                            key={player.id}
-                            className="hover:bg-zinc-50 dark:hover:bg-zinc-950"
+                            key={fav.name}
+                            className="hover:bg-zinc-50 dark:hover:bg-zinc-900"
                           >
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`inline-block w-2 h-2 rounded-full ${
+                                    isOnline ? "bg-green-500 animate-pulse" : "bg-zinc-400"
+                                  }`}
+                                />
+                                <span className="font-medium">{fav.name}</span>
+                                <span
+                                  className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full ${
+                                    isOnline
+                                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                      : "bg-zinc-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400"
+                                  }`}
+                                >
+                                  {isOnline ? t("online") : t("offline")}
+                                </span>
+                              </div>
+                            </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-mono">
-                              {player.id}
+                              <div className="flex items-center gap-1.5">
+                                <span>{displayId || "—"}</span>
+                                {displayId > 0 && (
+                                  <span
+                                    className={`text-[10px] px-1.5 py-0.5 rounded ${
+                                      isOnline
+                                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                                        : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500"
+                                    }`}
+                                  >
+                                    {isOnline ? t("currentId") : t("lastKnownId")}
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              {player.name}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <span
-                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  isOnline
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-zinc-100 text-gray-800"
-                                }`}
-                              >
-                                {isOnline ? "En ligne" : "Hors ligne"}
-                              </span>
+                              {isOnline && onlinePlayer ? (
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                    onlinePlayer.ping < 50
+                                      ? "bg-green-100 text-green-800"
+                                      : onlinePlayer.ping < 100
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-red-100 text-red-800"
+                                  }`}
+                                >
+                                  {onlinePlayer.ping}ms
+                                </span>
+                              ) : (
+                                <span className="text-zinc-400">—</span>
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <button
-                                onClick={() => toggleFavorite(player)}
-                                className="text-yellow-500 hover:text-yellow-600 p-1"
+                                onClick={() =>
+                                  setFavorites((prev) =>
+                                    prev.filter(
+                                      (f) =>
+                                        f.name.toLowerCase() !==
+                                        fav.name.toLowerCase(),
+                                    ),
+                                  )
+                                }
+                                className="text-red-400 hover:text-red-500 p-1 transition-colors"
+                                title={t("removeFromFavorites")}
                               >
-                                <Star className="h-5 w-5 fill-yellow-500" />
+                                <Trash2 className="h-4 w-4" />
                               </button>
                             </td>
                           </tr>
