@@ -5,8 +5,6 @@ export async function GET(
   { params }: { params: Promise<{ slug: string[] }> },
 ) {
   const { slug } = await params;
-  console.log(`[API Proxy] Slug: ${slug.join("/")}`);
-
   const path = slug.join("/");
   const url = `https://servers-frontend.fivem.net/api/${path}`;
 
@@ -21,8 +19,6 @@ export async function GET(
         Origin: "https://servers.fivem.net",
       },
     });
-
-    console.log(`[API Proxy] Response Status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text();

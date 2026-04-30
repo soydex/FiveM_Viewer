@@ -20,6 +20,8 @@
     "addToFavorites": "Add to favorites",
     "removeFromFavorites": "Remove from favorites",
     "topServers": "Top Servers",
+    "pinnedServers": "Pinned Servers",
+    "pinnedServersDesc": "Discover servers highlighted by the FiveM community.",
     "serverHistory": "Server History",
     "autoRefresh": "Auto-refresh",
     "theme": "Theme",

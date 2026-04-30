@@ -64,7 +64,6 @@ interface ServerInfo {
   currentPlayers: number;
   discordLink?: string;
   description?: string;
-  iconUrl?: string;
 }
 
 interface TopServer {
@@ -72,7 +71,6 @@ interface TopServer {
   name: string;
   currentPlayers: number;
   maxPlayers: number;
-  iconUrl?: string;
 }
 
 interface RawTopServer {
@@ -268,8 +266,6 @@ function App() {
     number | null
   >(null);
   const [displayedPlayersLimit, setDisplayedPlayersLimit] = useState(50);
-  // const [topServers, setTopServers] = useState<TopServer[]>([]);
-  // const [loadingTopServers, setLoadingTopServers] = useState(false);
 
   const { notifications, addNotification, removeNotification } =
     useNotifications();
@@ -319,10 +315,6 @@ function App() {
           description: serverData?.vars?.Moddés
             ? cleanFiveMColors(serverData.vars.Moddés)
             : undefined,
-          iconUrl: serverData?.iconVersion
-            ? `https://servers-live.fivem.net/servers/icon/${serverIdToUse}/${serverData.iconVersion}.png`
-            : serverData?.vars?.banner_detail ||
-              `/api/fivem/servers/icon/${serverIdToUse}`,
         });
 
         setLastRefreshTimestamp(Date.now());
@@ -365,78 +357,69 @@ function App() {
     [serverId, addNotification, t],
   );
 
+  const [topServers, setTopServers] = useState<TopServer[]>([]);
   const {
-    data: topServersRawData,
-    isLoading: loadingTopServers,
-    error: topServersError,
-  } = useSWR(!serverId.trim() ? "/api/fivem/servers/top/fr" : null, fetcher);
+    data: pinnedData,
+    isLoading: loadingPinned,
+    error: pinnedError,
+  } = useSWR(!serverId.trim() ? "https://runtime.fivem.net/pins.json" : null, fetcher);
 
-  const topServers = useMemo(() => {
-    const defaults: TopServer[] = [
-      {
-        id: "4r3dp",
-        name: "Los Santos Life",
-        currentPlayers: 120,
-        maxPlayers: 512,
-        iconUrl: "/api/fivem/servers/icon/4r3dp",
-      },
-      {
-        id: "9k8z2b",
-        name: "FrenchRP",
-        currentPlayers: 89,
-        maxPlayers: 256,
-        iconUrl: "/api/fivem/servers/icon/9k8z2b",
-      },
-      {
-        id: "n5x7m",
-        name: "Paris RP",
-        currentPlayers: 67,
-        maxPlayers: 128,
-        iconUrl: "/api/fivem/servers/icon/n5x7m",
-      },
-    ];
+  const [loadingTopServers, setLoadingTopServers] = useState(false);
 
-    if (!topServersRawData) return defaults;
-
-    try {
-      const data = topServersRawData;
-      const serverData = data.Data?.Data;
+  useEffect(() => {
+    const fetchPinnedServersDetails = async () => {
+      if (!pinnedData?.pinnedServers || pinnedData.pinnedServers.length === 0) return;
       
-      if (!data.EP && !data.Data?.EndPoint) return defaults;
+      setLoadingTopServers(true);
+      try {
+        // Limiter à 12 serveurs pour éviter trop de requêtes
+        const pinnedIds = pinnedData.pinnedServers.slice(0, 12);
+        
+        const detailsPromises = pinnedIds.map(async (id: string) => {
+          try {
+            const response = await fetch(`/api/fivem/servers/single/${id}`);
+            if (!response.ok) return null;
+            const data = await response.json();
+            const serverData = data.Data;
+            
+            return {
+              id: id,
+              name: cleanFiveMColors(serverData?.hostname || `Serveur ${id}`),
+              currentPlayers: serverData?.clients || 0,
+              maxPlayers: serverData?.sv_maxclients || 0,
+            };
+          } catch (e) {
+            return null;
+          }
+        });
 
-      const topServer: TopServer = {
-        id: data.EP || data.Data?.EndPoint || "",
-        name: cleanFiveMColors(serverData?.hostname || `Serveur ${data.EP}`),
-        currentPlayers: serverData?.clients || 0,
-        maxPlayers: serverData?.sv_maxclients || 0,
-        iconUrl: serverData?.iconVersion
-          ? `https://servers-live.fivem.net/servers/icon/${data.EP}/${serverData.iconVersion}.png`
-          : serverData?.vars?.banner_detail ||
-            `/api/fivem/servers/icon/${data.EP}`,
-      };
+        const results = await Promise.all(detailsPromises);
+        setTopServers(results.filter((s): s is TopServer => s !== null));
+      } catch (error) {
+        console.error("Error fetching pinned servers details:", error);
+      } finally {
+        setLoadingTopServers(false);
+      }
+    };
 
-      return [topServer, ...defaults];
-    } catch (e) {
-      console.error("Error parsing top servers data:", e);
-      return defaults;
-    }
-  }, [topServersRawData]);
+    fetchPinnedServersDetails();
+  }, [pinnedData]);
 
   const [hasNotifiedError, setHasNotifiedError] = useState(false);
 
   useEffect(() => {
-    if (topServersError && !hasNotifiedError) {
-      console.error("Erreur SWR top serveurs:", topServersError);
+    if (pinnedError && !hasNotifiedError) {
+      console.error("Erreur SWR pinned serveurs:", pinnedError);
       addNotification({
         type: "error",
         title: t("error"),
         message: t("unableToLoadTopServers"),
       });
       setHasNotifiedError(true);
-    } else if (!topServersError && hasNotifiedError) {
+    } else if (!pinnedError && hasNotifiedError) {
       setHasNotifiedError(false);
     }
-  }, [topServersError, hasNotifiedError, addNotification, t]);
+  }, [pinnedError, hasNotifiedError, addNotification, t]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -863,16 +846,6 @@ function App() {
                     / <span>{serverInfo.maxPlayers}</span> {t("playersCount")}
                   </div>
                   <div className="flex items-center space-x-2">
-                    {serverInfo.iconUrl && (
-                      <img
-                        src={serverInfo.iconUrl}
-                        alt="Server icon"
-                        className="w-6 h-6 rounded"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                    )}
                     <div className="text-sm opacity-75">{serverInfo.name}</div>
                   </div>
                 </div>
@@ -1222,7 +1195,7 @@ function App() {
                       className="pl-10 pr-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-950 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400 w-full ring-1 ring-transparent focus:ring-purple-500 focus:border-purple-500 transition-all"
                     />
                   </div>
-                  <div className="flex items-center bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-600 rounded-lg overflow-hidden">
+                  <div className="flex items-center bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-600 rounded-lg overflow-hidden" style={{height:"-webkit-fill-available"}}>
                     {(
                       [
                         { mode: "startsWith" as SearchMode, label: t("searchStartsWith") },
@@ -1233,7 +1206,7 @@ function App() {
                       <button
                         key={opt.mode}
                         onClick={() => setSearchMode(opt.mode)}
-                        className={`px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap ${
+                        className={`px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap h-full ${
                           searchMode === opt.mode
                             ? "bg-purple-600 text-white"
                             : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
