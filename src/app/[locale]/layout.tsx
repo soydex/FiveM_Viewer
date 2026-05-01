@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "FiveM Viewer",
   description: "FiveM Server Viewer and Statistics",
+  icons: {
+    icon: "/unreal_fivem.svg",
+  },
 };
 
 export default async function RootLayout({
