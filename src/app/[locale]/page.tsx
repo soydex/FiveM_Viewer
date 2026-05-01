@@ -1,53 +1,32 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  Suspense,
-  useRef,
-} from "react";
-import dynamic from "next/dynamic";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { NotificationContainer } from "../../components/Notifications";
 import { useNotifications } from "../../hooks/useNotifications";
-import {
-  cleanFiveMColors,
-  extractDiscordLink,
-  extractSocialLinks,
-} from "../../utils";
+import { cleanFiveMColors, extractDiscordLink } from "../../utils/fivem";
+import { 
+  loadFavorites, saveFavorites, 
+  loadServerHistory, saveServerHistory,
+  loadLastServerId, saveLastServerId,
+  loadAutoRefresh, saveAutoRefresh,
+  FavoritePlayer, ServerHistoryItem
+} from "../../utils/storage";
+import { checkPlayerMatch, SearchMode } from "../../utils/search";
+import { formatDate } from "../../utils/format";
 import useSWR from "swr";
-import {
-  Users,
-  Heart,
-  BarChart3,
-  Search,
-  RefreshCw,
-  Play,
-  Star,
-  ChevronDown,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  Trash2,
-  Server,
-  Clock,
-  Check,
-  Command,
-  UserPlus,
-  Plus,
-} from "lucide-react";
 import Footer from "../../components/Footer";
 import TopServ from "../../components/TopServ";
 import Mobile from "../../components/Mobile";
-import LanguageSwitcher from "../../components/LanguageSwitcher";
-
-const StatisticsCharts = dynamic(
-  () =>
-    import("../../components/StatisticsCharts").then((m) => m.StatisticsCharts),
-  { ssr: false, loading: () => <StatisticsSkeleton /> },
-);
+import Header from "../../components/dashboard/Header";
+import ServerBanner from "../../components/dashboard/ServerBanner";
+import Tabs from "../../components/dashboard/Tabs";
+import ServerHistoryComponent from "../../components/dashboard/ServerHistory";
+import PlayerFilters from "../../components/dashboard/PlayerFilters";
+import PlayersTable from "../../components/dashboard/PlayersTable";
+import FavoritesManager from "../../components/dashboard/FavoritesManager";
+import Statistics from "../../components/dashboard/Statistics";
+import RefreshBadge from "../../components/dashboard/RefreshBadge";
 
 interface Player {
   id: number;
@@ -73,1535 +52,289 @@ interface TopServer {
   maxPlayers: number;
 }
 
-interface RawTopServer {
-  EP?: string;
-  Data?: {
-    EndPoint?: string;
-    Data?: {
-      hostname?: string;
-      clients?: number;
-      sv_maxclients?: number;
-      iconVersion?: number;
-      vars?: {
-        banner_detail?: string;
-      };
-    };
-  };
-}
-
 type TabType = "players" | "favorites" | "statistics";
-
 type SortField = "id" | "name" | "ping";
 type SortOrder = "asc" | "desc";
-type SearchMode = "contains" | "startsWith" | "endsWith";
-
-interface FavoritePlayer {
-  name: string;
-  lastKnownId: number;
-}
-
-interface ServerHistory {
-  id: string;
-  name: string;
-  lastVisited: number;
-}
-
-function PlayersTableSkeleton() {
-  return (
-    <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
-      <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-        <thead className="bg-zinc-50 dark:bg-zinc-950">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-              #
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-              ID
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-              Nom
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-              Ping
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-              Liens
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white dark:bg-zinc-950 divide-y divide-zinc-200 dark:divide-zinc-700">
-          {Array.from({ length: 8 }).map((_, index) => (
-            <tr key={index} className="animate-pulse">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 dark:bg-zinc-950 rounded w-6"></div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 dark:bg-zinc-950 rounded w-12"></div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 dark:bg-zinc-950 rounded w-32"></div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-6 bg-gray-200 dark:bg-zinc-950 rounded-full w-16"></div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-4 bg-gray-200 dark:bg-zinc-950 rounded w-8"></div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="h-5 w-5 bg-gray-200 dark:bg-zinc-950 rounded"></div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function ServerInfoSkeleton() {
-  return (
-    <div className="mt-4 space-y-2 animate-pulse">
-      <div className="flex items-center space-x-4">
-        <div className="px-3 py-1 rounded-full bg-gray-200 dark:bg-zinc-950 h-6 w-24"></div>
-        <div className="h-4 bg-gray-200 dark:bg-zinc-950 rounded w-48"></div>
-      </div>
-      <div className="flex items-center space-x-4">
-        <div className="h-4 bg-gray-200 dark:bg-zinc-950 rounded w-64"></div>
-      </div>
-    </div>
-  );
-}
-
-function StatisticsSkeleton() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div className="p-6 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-950 dark:border-zinc-700 animate-pulse">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-5 h-5 bg-gray-200 dark:bg-zinc-950 rounded"></div>
-          <div className="h-5 bg-gray-200 dark:bg-zinc-950 rounded w-32"></div>
-        </div>
-        <div className="h-64 bg-gray-200 dark:bg-zinc-950 rounded"></div>
-      </div>
-      <div className="p-6 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-950 dark:border-zinc-700 animate-pulse">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-5 h-5 bg-gray-200 dark:bg-zinc-950 rounded"></div>
-          <div className="h-5 bg-gray-200 dark:bg-zinc-950 rounded w-32"></div>
-        </div>
-        <div className="h-64 bg-gray-200 dark:bg-zinc-950 rounded"></div>
-      </div>
-    </div>
-  );
-}
 
 function App() {
   const t = useTranslations("common");
   const locale = useLocale();
+  const { notifications, addNotification, removeNotification } = useNotifications();
 
-  const formatDate = useCallback(
-    (date: Date) => {
-      const now = new Date();
-      const diff = now.getTime() - date.getTime();
-      const hours = Math.floor(diff / 3600000);
-      const days = Math.floor(diff / (24 * 3600000));
-
-      if (hours < 1) return t("now");
-      if (hours < 24) return t("hoursAgo", { count: hours });
-      if (days < 7) return t("daysAgo", { count: days });
-      return date.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US");
-    },
-    [t, locale],
-  );
-
-  const loadFavoritesFromStorage = (): FavoritePlayer[] => {
-    if (typeof window === "undefined" || !window.localStorage) return [];
-    try {
-      const savedFavorites = window.localStorage.getItem("favorites");
-      if (savedFavorites) {
-        const parsed = JSON.parse(savedFavorites);
-        // Migration: convert old format (Player[]) to new format (FavoritePlayer[])
-        if (Array.isArray(parsed) && parsed.length > 0 && !('lastKnownId' in parsed[0]) && 'id' in parsed[0]) {
-          const migrated: FavoritePlayer[] = parsed.map((old: Player) => ({
-            name: old.name,
-            lastKnownId: old.id,
-          }));
-          window.localStorage.setItem("favorites", JSON.stringify(migrated));
-          return migrated;
-        }
-        return parsed;
-      }
-    } catch (error) {
-      console.warn("Erreur lors du chargement des favoris:", error);
-      try {
-        window.localStorage.removeItem("favorites");
-      } catch (e) {}
-    }
-    return [];
-  };
-
+  // --- State ---
   const [currentTab, setCurrentTab] = useState<TabType>("players");
   const [serverId, setServerId] = useState("");
   const [serverInfo, setServerInfo] = useState<ServerInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [favorites, setFavorites] = useState<FavoritePlayer[]>(
-    loadFavoritesFromStorage,
-  );
   const [searchMode, setSearchMode] = useState<SearchMode>("contains");
+  const [favorites, setFavorites] = useState<FavoritePlayer[]>([]);
   const [addFavoriteName, setAddFavoriteName] = useState("");
-  const [serverHistory, setServerHistory] = useState<ServerHistory[]>([]);
-  const historyRef = useRef<HTMLDivElement>(null);
-  const sortRef = useRef<HTMLDivElement>(null);
-  const [showHistory, setShowHistory] = useState(false);
-  const [serversHistoryHoveredId, setServersHistoryHoveredId] = useState<
-    string | null
-  >(null);
+  const [serverHistory, setServerHistory] = useState<ServerHistoryItem[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [sortField, setSortField] = useState<SortField>("id");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-  const [showSortDropdown, setShowSortDropdown] = useState(false);
-  const [lastRefreshTimestamp, setLastRefreshTimestamp] = useState<
-    number | null
-  >(null);
+  const [lastRefreshTimestamp, setLastRefreshTimestamp] = useState<number | null>(null);
   const [displayedPlayersLimit, setDisplayedPlayersLimit] = useState(50);
-
-  const { notifications, addNotification, removeNotification } =
-    useNotifications();
-
   const [isMac, setIsMac] = useState(false);
-
-  useEffect(() => {
-    if (typeof navigator !== "undefined") {
-      setIsMac(navigator.userAgent.includes("Mac"));
-    }
-  }, []);
+  const [topServers, setTopServers] = useState<TopServer[]>([]);
 
   const fetcher = useCallback(async (url: string) => {
     const res = await fetch(url);
-    if (!res.ok)
-      throw new Error(
-        `Erreur lors de la récupération des données: ${res.status} ${res.statusText}`,
-      );
+    if (!res.ok) throw new Error(`Fetch error: ${res.status}`);
     return res.json();
   }, []);
 
-  const fetchServerData = useCallback(
-    async (overrideServerId?: string) => {
-      const serverIdToUse = overrideServerId || serverId;
-      if (!serverIdToUse.trim()) return;
+  // --- Data Fetching ---
+  const fetchServerData = useCallback(async (overrideServerId?: string) => {
+    const idToUse = (overrideServerId || serverId).trim();
+    if (!idToUse) return;
 
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `/api/fivem/servers/single/${serverIdToUse}`,
-        );
-        if (!response.ok) throw new Error(t("serverNotFound"));
-
-        const data = await response.json();
-        const serverData = data.Data;
-
-        setServerInfo({
-          id: serverIdToUse,
-          name: cleanFiveMColors(
-            serverData?.hostname || `Serveur ${serverIdToUse}`,
-          ),
-          players: serverData?.players || [],
-          maxPlayers: serverData?.sv_maxclients || 0,
-          currentPlayers:
-            serverData?.clients || serverData?.players?.length || 0,
-          discordLink: extractDiscordLink(serverData?.vars),
-          description: serverData?.vars?.Moddés
-            ? cleanFiveMColors(serverData.vars.Moddés)
-            : undefined,
-        });
-
-        setLastRefreshTimestamp(Date.now());
-
-        setServerHistory((prev) => {
-          const newHistory = prev.filter((s) => s.id !== serverIdToUse);
-          const updatedHistory = [
-            {
-              id: serverIdToUse,
-              name: cleanFiveMColors(
-                serverData?.hostname || `Serveur ${serverIdToUse}`,
-              ),
-              lastVisited: Date.now(),
-            },
-            ...newHistory,
-          ].slice(0, 10);
-          localStorage.setItem("serverHistory", JSON.stringify(updatedHistory));
-          return updatedHistory;
-        });
-
-        addNotification({
-          type: "success",
-          title: t("serverLoaded"),
-          message: t("playersFound", {
-            count: serverData?.clients || serverData?.players?.length || 0,
-          }),
-        });
-      } catch (error) {
-        console.error("Erreur lors de la récupération des données:", error);
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/fivem/servers/single/${idToUse}`);
+      
+      if (response.status === 404) {
         setServerInfo(null);
+        setServerId("");
+        setAutoRefresh(false);
         addNotification({
           type: "error",
           title: t("error"),
-          message: t("unableToLoadServerData"),
+          message: t("serverNotFound"),
         });
-      } finally {
-        setLoading(false);
+        return;
       }
-    },
-    [serverId, addNotification, t],
-  );
 
-  const [topServers, setTopServers] = useState<TopServer[]>([]);
-  const {
-    data: pinnedData,
-    isLoading: loadingPinned,
-    error: pinnedError,
-  } = useSWR(!serverId.trim() ? "https://runtime.fivem.net/pins.json" : null, fetcher);
+      if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
 
-  const [loadingTopServers, setLoadingTopServers] = useState(false);
+      const data = await response.json();
+      const serverData = data.Data;
+
+      setServerInfo({
+        id: idToUse,
+        name: cleanFiveMColors(serverData?.hostname || `Serveur ${idToUse}`),
+        players: serverData?.players || [],
+        maxPlayers: serverData?.sv_maxclients || 0,
+        currentPlayers: serverData?.clients || serverData?.players?.length || 0,
+        discordLink: extractDiscordLink(serverData?.vars),
+        description: serverData?.vars?.Moddés ? cleanFiveMColors(serverData.vars.Moddés) : undefined,
+      });
+
+      setLastRefreshTimestamp(Date.now());
+
+      setServerHistory((prev) => {
+        const filtered = prev.filter((s) => s.id !== idToUse);
+        const updated = [{
+          id: idToUse,
+          name: cleanFiveMColors(serverData?.hostname || `Serveur ${idToUse}`),
+          lastVisited: Date.now(),
+        }, ...filtered].slice(0, 10);
+        saveServerHistory(updated);
+        return updated;
+      });
+
+      addNotification({
+        type: "success",
+        title: t("serverLoaded"),
+        message: t("playersFound", { count: serverData?.clients || serverData?.players?.length || 0 }),
+      });
+    } catch (error) {
+      console.error("Fetch error:", error);
+      setServerInfo(null);
+      addNotification({ type: "error", title: t("error"), message: t("unableToLoadServerData") });
+    } finally {
+      setLoading(false);
+    }
+  }, [serverId, addNotification, t]);
+
+  const { data: pinnedData, error: pinnedError } = useSWR(!serverId.trim() ? "https://runtime.fivem.net/pins.json" : null, fetcher);
+  const loadingTopServers = !pinnedData && !pinnedError && !serverId.trim();
 
   useEffect(() => {
-    const fetchPinnedServersDetails = async () => {
-      if (!pinnedData?.pinnedServers || pinnedData.pinnedServers.length === 0) return;
-      
-      setLoadingTopServers(true);
-      try {
-        // Limiter à 12 serveurs pour éviter trop de requêtes
-        const pinnedIds = pinnedData.pinnedServers.slice(0, 12);
-        
-        const detailsPromises = pinnedIds.map(async (id: string) => {
-          try {
-            const response = await fetch(`/api/fivem/servers/single/${id}`);
-            if (!response.ok) return null;
-            const data = await response.json();
-            const serverData = data.Data;
-            
-            return {
-              id: id,
-              name: cleanFiveMColors(serverData?.hostname || `Serveur ${id}`),
-              currentPlayers: serverData?.clients || 0,
-              maxPlayers: serverData?.sv_maxclients || 0,
-            };
-          } catch (e) {
-            return null;
-          }
-        });
-
-        const results = await Promise.all(detailsPromises);
-        setTopServers(results.filter((s): s is TopServer => s !== null));
-      } catch (error) {
-        console.error("Error fetching pinned servers details:", error);
-      } finally {
-        setLoadingTopServers(false);
-      }
+    if (!pinnedData?.pinnedServers) return;
+    const fetchPinnedDetails = async () => {
+      const ids = pinnedData.pinnedServers.slice(0, 12);
+      const promises = ids.map(async (id: string) => {
+        try {
+          const res = await fetch(`/api/fivem/servers/single/${id}`);
+          if (!res.ok) return null;
+          const data = await res.json();
+          return {
+            id,
+            name: cleanFiveMColors(data.Data?.hostname || `Serveur ${id}`),
+            currentPlayers: data.Data?.clients || 0,
+            maxPlayers: data.Data?.sv_maxclients || 0,
+          };
+        } catch { return null; }
+      });
+      const results = await Promise.all(promises);
+      setTopServers(results.filter((s): s is TopServer => s !== null));
     };
-
-    fetchPinnedServersDetails();
+    fetchPinnedDetails();
   }, [pinnedData]);
 
-  const [hasNotifiedError, setHasNotifiedError] = useState(false);
-
+  // --- Effects ---
   useEffect(() => {
-    if (pinnedError && !hasNotifiedError) {
-      console.error("Erreur SWR pinned serveurs:", pinnedError);
-      addNotification({
-        type: "error",
-        title: t("error"),
-        message: t("unableToLoadTopServers"),
-      });
-      setHasNotifiedError(true);
-    } else if (!pinnedError && hasNotifiedError) {
-      setHasNotifiedError(false);
+    if (typeof navigator !== "undefined") setIsMac(navigator.userAgent.includes("Mac"));
+    
+    // Initial Load from Storage
+    const savedId = loadLastServerId();
+    const savedHistory = loadServerHistory();
+    const savedAuto = loadAutoRefresh();
+    const savedFavs = loadFavorites();
+
+    if (savedId) { 
+      setServerId(savedId); 
+      fetchServerData(savedId); 
     }
-  }, [pinnedError, hasNotifiedError, addNotification, t]);
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const serverParam = urlParams.get("server");
-    const searchParam = urlParams.get("search");
-    const tabParam = urlParams.get("tab");
-
-    const savedServerId = window.localStorage.getItem("lastServerId");
-    const savedHistory = window.localStorage.getItem("serverHistory");
-    const savedAutoRefresh = window.localStorage.getItem("autoRefresh");
-
-    const serverIdToLoad =
-      serverParam ||
-      (savedServerId && savedServerId.trim() ? savedServerId : null);
-
-    if (serverIdToLoad) {
-      setServerId(serverIdToLoad);
-      fetchServerData(serverIdToLoad);
-    }
-
-    if (searchParam) {
-      setSearchTerm(searchParam);
-    }
-
-    if (tabParam && ["players", "favorites", "statistics"].includes(tabParam)) {
-      setCurrentTab(tabParam as TabType);
-    }
-
-    if (savedHistory) {
-      try {
-        setServerHistory(JSON.parse(savedHistory));
-      } catch (error) {
-        console.warn("Erreur lors du chargement de l'historique:", error);
-        localStorage.removeItem("serverHistory");
-      }
-    }
-
-    if (savedAutoRefresh) {
-      setAutoRefresh(savedAutoRefresh === "true");
-    }
+    if (savedHistory.length > 0) setServerHistory(savedHistory);
+    setAutoRefresh(savedAuto);
+    if (savedFavs.length > 0) setFavorites(savedFavs);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    localStorage.setItem("lastServerId", serverId);
-  }, [serverId]);
+  useEffect(() => { saveLastServerId(serverId); }, [serverId]);
+  useEffect(() => { saveFavorites(favorites); }, [favorites]);
+  useEffect(() => { saveAutoRefresh(autoRefresh); }, [autoRefresh]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem("favorites", JSON.stringify(favorites));
-    } catch (error) {
-      console.warn("Erreur lors de la sauvegarde des favoris:", error);
-    }
-  }, [favorites]);
+    if (!autoRefresh || !serverId.trim() || loading) return;
+    const interval = setInterval(() => {
+      fetchServerData();
+      addNotification({ type: "info", title: t("autoRefreshTitle"), message: t("dataUpdated") });
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [autoRefresh, serverId, loading, addNotification, fetchServerData, t]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem("autoRefresh", autoRefresh.toString());
-    } catch (error) {
-      console.warn("Erreur lors de la sauvegarde de l'auto-refresh:", error);
-    }
-  }, [autoRefresh]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (
-        showHistory &&
-        historyRef.current &&
-        !historyRef.current.contains(target)
-      ) {
-        setShowHistory(false);
-      }
-      if (
-        showSortDropdown &&
-        sortRef.current &&
-        !sortRef.current.contains(target)
-      ) {
-        setShowSortDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showHistory, showSortDropdown]);
-
-  // Centralized search function — excludes IDs, supports search modes
-  const checkPlayerMatch = useCallback(
-    (playerName: string, term: string, mode: SearchMode): boolean => {
-      if (!term.trim()) return true;
-      const name = playerName.toLowerCase();
-      const search = term.toLowerCase();
-      switch (mode) {
-        case "startsWith":
-          return name.startsWith(search);
-        case "endsWith":
-          return name.endsWith(search);
-        case "contains":
-        default:
-          return name.includes(search);
-      }
-    },
-    [],
-  );
-
+  // --- Handlers ---
   const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
     if (scrollHeight - scrollTop - clientHeight < 200) {
-      setDisplayedPlayersLimit((prev) => {
-        const newLimit = prev + 50;
-        const filteredCount =
-          serverInfo?.players?.filter((player) =>
-            checkPlayerMatch(player.name, searchTerm, searchMode),
-          ).length || 0;
-        return Math.min(newLimit, filteredCount);
-      });
+      setDisplayedPlayersLimit(prev => prev + 50);
     }
   };
 
   const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    if (sortField === field) setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    else { setSortField(field); setSortOrder("asc"); }
+  };
+
+  const toggleFavorite = (player: Player) => {
+    const isFav = favorites.some(f => f.name.toLowerCase() === player.name.toLowerCase());
+    if (isFav) {
+      setFavorites(prev => prev.filter(f => f.name.toLowerCase() !== player.name.toLowerCase()));
+      addNotification({ type: "info", title: t("favoriteRemoved"), message: t("favoriteRemoved") });
     } else {
-      setSortField(field);
-      setSortOrder("asc");
+      setFavorites(prev => [...prev, { name: player.name, lastKnownId: player.id }]);
+      addNotification({ type: "success", title: t("favoriteAdded"), message: t("favoriteAdded") });
     }
   };
 
-  useEffect(() => {
-    setDisplayedPlayersLimit(50);
-  }, [serverId, searchTerm]);
-
-  useEffect(() => {
-    if (!autoRefresh || !serverId.trim() || loading) return;
-
-    const interval = setInterval(() => {
-      fetchServerData();
-      addNotification({
-        type: "info",
-        title: t("autoRefreshTitle"),
-        message: t("dataUpdated"),
-      });
-    }, 30000); // 30 secondes
-
-    return () => clearInterval(interval);
-  }, [autoRefresh, serverId, loading, addNotification, fetchServerData, t]);
+  const addFavoriteManually = () => {
+    const name = addFavoriteName.trim();
+    if (!name) return;
+    if (favorites.some(f => f.name.toLowerCase() === name.toLowerCase())) return;
+    setFavorites(prev => [...prev, { name, lastKnownId: 0 }]);
+    setAddFavoriteName("");
+    addNotification({ type: "success", title: t("favoriteAdded"), message: t("favoriteAdded") });
+  };
 
   const filteredPlayers = useMemo(() => {
     if (!serverInfo?.players) return [];
-
-    const filtered = serverInfo.players.filter((player) =>
-      checkPlayerMatch(player.name, searchTerm, searchMode),
-    );
-
+    const filtered = serverInfo.players.filter(p => checkPlayerMatch(p.name, searchTerm, searchMode));
     filtered.sort((a, b) => {
-      let aValue: string | number;
-      let bValue: string | number;
-
-      switch (sortField) {
-        case "id":
-          aValue = a.id;
-          bValue = b.id;
-          break;
-        case "name":
-          aValue = a.name.toLowerCase();
-          bValue = b.name.toLowerCase();
-          break;
-        case "ping":
-          aValue = a.ping;
-          bValue = b.ping;
-          break;
-        default:
-          return 0;
-      }
-
-      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+      let av = sortField === "id" ? a.id : sortField === "name" ? a.name.toLowerCase() : a.ping;
+      let bv = sortField === "id" ? b.id : sortField === "name" ? b.name.toLowerCase() : b.ping;
+      if (av < bv) return sortOrder === "asc" ? -1 : 1;
+      if (av > bv) return sortOrder === "asc" ? 1 : -1;
       return 0;
     });
-
     return filtered.slice(0, displayedPlayersLimit);
-  }, [
-    serverInfo?.players,
-    searchTerm,
-    searchMode,
-    checkPlayerMatch,
-    sortField,
-    sortOrder,
-    displayedPlayersLimit,
-  ]);
-
-  const toggleFavorite = useCallback(
-    (player: Player) => {
-      const isCurrentlyFavorite = favorites.some(
-        (fav) => fav.name.toLowerCase() === player.name.toLowerCase(),
-      );
-
-      if (isCurrentlyFavorite) {
-        addNotification({
-          type: "info",
-          title: t("favoriteRemoved"),
-          message: t.rich("removedFromFavorites", {
-            name: player.name,
-            strong: (chunks) => (
-              <strong className="font-semibold text-zinc-900 dark:text-zinc-100">
-                {chunks}
-              </strong>
-            ),
-          }),
-        });
-        setFavorites((prev) =>
-          prev.filter(
-            (fav) => fav.name.toLowerCase() !== player.name.toLowerCase(),
-          ),
-        );
-      } else {
-        addNotification({
-          type: "success",
-          title: t("favoriteAdded"),
-          message: t.rich("addedToFavorites", {
-            name: player.name,
-            strong: (chunks) => (
-              <strong className="font-semibold text-zinc-900 dark:text-zinc-100">
-                {chunks}
-              </strong>
-            ),
-          }),
-        });
-        setFavorites((prev) => [
-          ...prev,
-          { name: player.name, lastKnownId: player.id },
-        ]);
-      }
-    },
-    [favorites, addNotification, t],
-  );
-
-  const addFavoriteManually = useCallback(() => {
-    const trimmed = addFavoriteName.trim();
-    if (!trimmed) {
-      addNotification({
-        type: "error",
-        title: t("error"),
-        message: t("favoriteNameEmpty"),
-      });
-      return;
-    }
-    const exists = favorites.some(
-      (fav) => fav.name.toLowerCase() === trimmed.toLowerCase(),
-    );
-    if (exists) {
-      addNotification({
-        type: "info",
-        title: t("favorites"),
-        message: t("favoriteAlreadyExists"),
-      });
-      return;
-    }
-    setFavorites((prev) => [...prev, { name: trimmed, lastKnownId: 0 }]);
-    setAddFavoriteName("");
-    addNotification({
-      type: "success",
-      title: t("favoriteAdded"),
-      message: t.rich("addedToFavorites", {
-        name: trimmed,
-        strong: (chunks) => (
-          <strong className="font-semibold text-zinc-900 dark:text-zinc-100">
-            {chunks}
-          </strong>
-        ),
-      }),
-    });
-  }, [addFavoriteName, favorites, addNotification, t]);
-
-  const isPlayerFavorite = (playerName: string) => {
-    return favorites.some(
-      (fav) => fav.name.toLowerCase() === playerName.toLowerCase(),
-    );
-  };
+  }, [serverInfo?.players, searchTerm, searchMode, sortField, sortOrder, displayedPlayersLimit]);
 
   return (
     <>
       <Mobile />
       <div className="hidden sm:block min-h-screen bg-zinc-50 text-gray-900 dark:bg-zinc-950 dark:text-white relative">
-        {/* Header */}
-        <header className="shadow-sm bg-white dark:bg-zinc-950">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div
-                className="flex items-center gap-2 group cursor-pointer"
-                onClick={() => (window.location.href = "/")}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  x="0px"
-                  y="0px"
-                  width="100"
-                  height="100"
-                  viewBox="0 0 48 48"
-                  className="dark:text-white group-hover:text-purple-600 w-10 h-10 transition-colors"
-                >
-                  <polygon
-                    fill="CurrentColor"
-                    points="5,45 9,34 21,22 15,45"
-                  ></polygon>
-                  <polygon
-                    fill="CurrentColor"
-                    points="25,18 33,45 43,45 32,12"
-                  ></polygon>
-                  <polygon
-                    fill="CurrentColor"
-                    points="16.059,14.164 20,3 28,3"
-                  ></polygon>
-                  <polygon
-                    fill="CurrentColor"
-                    points="10.731,29.002 23,17 23,15 11.58,26.667"
-                  ></polygon>
-                  <polygon
-                    fill="CurrentColor"
-                    points="15.142,16.429 13,22 29.724,5.725 28.818,3.178"
-                  ></polygon>
-                  <polygon
-                    fill="CurrentColor"
-                    points="23.932,14.055 24.377,15.626 30.941,9.178 30.385,7.702"
-                  ></polygon>
-                </svg>
-                <h1 className="dark:text-white font-semibold text-lg group-hover:text-purple-600 transition-colors">
-                  FiveM Viewer
-                </h1>
-              </div>
+        <Header
+          serverId={serverId}
+          setServerId={setServerId}
+          fetchServerData={fetchServerData}
+          loading={loading}
+          autoRefresh={autoRefresh}
+          setAutoRefresh={setAutoRefresh}
+          isMac={isMac}
+        />
 
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <div className="flex h-10 items-center bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-[10px] focus-within:ring-2 focus-within:ring-purple-500/50 transition-all duration-150 ease-in-out px-3 gap-2">
-                    <div className="flex items-center gap-1.5">
-                      {isMac ? (
-                        <kbd className="bg-zinc-100 dark:bg-zinc-800 rounded px-1.5 py-0.5 text-[10px] font-medium border border-zinc-300 dark:border-zinc-700 text-zinc-500 flex items-center justify-center min-w-[20px]">
-                          <Command className="w-3 h-3" />
-                        </kbd>
-                      ) : (
-                        <kbd className="bg-zinc-100 dark:bg-zinc-800 rounded px-1.5 py-0.5 text-[10px] font-medium border border-zinc-300 dark:border-zinc-700 text-zinc-500">
-                          CTRL
-                        </kbd>
-                      )}
-                      <span className="text-zinc-500 text-[10px] font-medium">
-                        + K
-                      </span>
-                    </div>
-
-                    <div className="w-[1px] h-4 bg-zinc-300 dark:bg-zinc-800 mx-1" />
-
-                    <input
-                      type="text"
-                      autoCapitalize="off"
-                      autoCorrect="off"
-                      autoFocus
-                      placeholder={t("serverIdPlaceholder")}
-                      value={serverId}
-                      onChange={(e) => {
-                        const newValue = e.target.value.trim();
-                        setServerId(newValue);
-                        if (newValue.length === 6) {
-                          fetchServerData(newValue);
-                        }
-                      }}
-                      className="bg-transparent text-gray-900 dark:text-[#f4f4f5] px-1 py-1 focus:outline-none w-32 text-sm placeholder-gray-500 dark:placeholder-zinc-500"
-                    />
-                    <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest ml-1">
-                      ID
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => fetchServerData()}
-                    disabled={loading || !serverId.trim()}
-                    aria-label={t("reloadServerData")}
-                    title={t("reloadServerData")}
-                    className="relative cursor-pointer opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#8122b0] to-[#dc98fd] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <span className="flex items-center gap-2 px-6 py-2 bg-[#B931FC] text-white rounded-[10px] bg-gradient-to-t from-[#a62ce2] to-[#c045fc] font-medium whitespace-nowrap">
-                      <Play
-                        className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
-                      />
-                      {loading ? t("loading") : t("reload")}
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => setAutoRefresh(!autoRefresh)}
-                    className={`relative cursor-pointer opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] active:scale-95 ${
-                      autoRefresh
-                        ? "bg-gradient-to-t from-[#1d4ed8] to-[#60a5fa]"
-                        : "bg-gradient-to-t from-zinc-700 to-zinc-500"
-                    }`}
-                    title={
-                      autoRefresh
-                        ? t("disableAutoRefresh")
-                        : t("enableAutoRefresh")
-                    }
-                  >
-                    <span
-                      className={`flex items-center gap-2 px-6 py-2 text-white rounded-[10px] font-medium whitespace-nowrap min-w-[150px] ${
-                        autoRefresh
-                          ? "bg-gradient-to-t from-[#2563eb] to-[#3b82f6]"
-                          : "bg-gradient-to-t from-zinc-800 to-zinc-700"
-                      }`}
-                    >
-                      <RefreshCw
-                        className={`w-4 h-4 ${autoRefresh ? "animate-spin" : ""}`}
-                      />
-                      {autoRefresh ? t("autoOn") : t("autoOff")}
-                    </span>
-                  </button>
-                </div>
-                <LanguageSwitcher />
-              </div>
-            </div>
-
-            {serverInfo && !loading && (
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center space-x-4">
-                  <div className="text-sm">
-                    <span className="font-semibold">
-                      {serverInfo.currentPlayers}
-                    </span>{" "}
-                    / <span>{serverInfo.maxPlayers}</span> {t("playersCount")}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-sm opacity-75">{serverInfo.name}</div>
-                  </div>
-                </div>
-
-                {(serverInfo.discordLink || serverInfo.description) && (
-                  <div className="flex items-center space-x-4 text-sm">
-                    {serverInfo.discordLink && (
-                      <a
-                        href={serverInfo.discordLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 hover:text-blue-600 underline flex items-center gap-1"
-                      >
-                        {/* only stupid svg in the project */}
-                        <svg
-                          viewBox="0 -28.5 256 256"
-                          version="1.1"
-                          preserveAspectRatio="xMidYMid"
-                          fill="#000000"
-                          className="w-4 h-4"
-                        >
-                          <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-                          <g
-                            id="SVGRepo_tracerCarrier"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          ></g>
-                          <g id="SVGRepo_iconCarrier">
-                            {" "}
-                            <g>
-                              {" "}
-                              <path
-                                d="M216.856339,16.5966031 C200.285002,8.84328665 182.566144,3.2084988 164.041564,0 C161.766523,4.11318106 159.108624,9.64549908 157.276099,14.0464379 C137.583995,11.0849896 118.072967,11.0849896 98.7430163,14.0464379 C96.9108417,9.64549908 94.1925838,4.11318106 91.8971895,0 C73.3526068,3.2084988 55.6133949,8.86399117 39.0420583,16.6376612 C5.61752293,67.146514 -3.4433191,116.400813 1.08711069,164.955721 C23.2560196,181.510915 44.7403634,191.567697 65.8621325,198.148576 C71.0772151,190.971126 75.7283628,183.341335 79.7352139,175.300261 C72.104019,172.400575 64.7949724,168.822202 57.8887866,164.667963 C59.7209612,163.310589 61.5131304,161.891452 63.2445898,160.431257 C105.36741,180.133187 151.134928,180.133187 192.754523,160.431257 C194.506336,161.891452 196.298154,163.310589 198.110326,164.667963 C191.183787,168.842556 183.854737,172.420929 176.223542,175.320965 C180.230393,183.341335 184.861538,190.991831 190.096624,198.16893 C211.238746,191.588051 232.743023,181.531619 254.911949,164.955721 C260.227747,108.668201 245.831087,59.8662432 216.856339,16.5966031 Z M85.4738752,135.09489 C72.8290281,135.09489 62.4592217,123.290155 62.4592217,108.914901 C62.4592217,94.5396472 72.607595,82.7145587 85.4738752,82.7145587 C98.3405064,82.7145587 108.709962,94.5189427 108.488529,108.914901 C108.508531,123.290155 98.3405064,135.09489 85.4738752,135.09489 Z M170.525237,135.09489 C157.88039,135.09489 147.510584,123.290155 147.510584,108.914901 C147.510584,94.5396472 157.658606,82.7145587 170.525237,82.7145587 C183.391518,82.7145587 193.761324,94.5189427 193.539891,108.914901 C193.539891,123.290155 183.391518,135.09489 170.525237,135.09489 Z"
-                                fill="CurrentColor"
-                                fillRule="nonzero"
-                              >
-                                {" "}
-                              </path>{" "}
-                            </g>{" "}
-                          </g>
-                        </svg>
-                        Discord
-                      </a>
-                    )}
-                    {serverInfo.description && (
-                      <span className="opacity-75">
-                        {serverInfo.description}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {loading && <ServerInfoSkeleton />}
-          </div>
-        </header>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ServerBanner serverInfo={serverInfo} loading={loading} />
+        </div>
 
         {serverInfo && (
-          <nav className="bg-white border-zinc-200 border-b dark:bg-zinc-950 dark:border-zinc-700">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex space-x-8">
-                {[
-                  {
-                    id: "players",
-                    label: t("players"),
-                    count: filteredPlayers.length,
-                    icon: Users,
-                  },
-                  {
-                    id: "favorites",
-                    label: t("favorites"),
-                    count: favorites.length,
-                    icon: Heart,
-                  },
-                  { id: "statistics", label: t("statistics"), icon: BarChart3 },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setCurrentTab(tab.id as TabType)}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                      currentTab === tab.id
-                        ? "border-purple-500 text-purple-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                    }`}
-                  >
-                    <tab.icon className="w-4 h-4" />
-                    {tab.label} {tab.count !== undefined && `(${tab.count})`}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </nav>
+          <Tabs
+            currentTab={currentTab}
+            setCurrentTab={setCurrentTab}
+            playersCount={serverInfo.players.length}
+            favoritesCount={favorites.length}
+          />
         )}
 
-        {/* Contenu principal */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[70vh]">
           {!serverInfo ? (
             <TopServ
               topServers={topServers}
               loading={loadingTopServers}
-              onSelectServer={(serverId) => {
-                setServerId(serverId);
-                fetchServerData(serverId);
-              }}
+              onSelectServer={(id) => { setServerId(id); fetchServerData(id); }}
             />
           ) : (
-            currentTab === "players" && (
-              <div className="flex flex-col gap-4">
-                {serverHistory.length > 0 && (
-                  <div className="relative" ref={historyRef}>
-                    <button
-                      onClick={() => setShowHistory(!showHistory)}
-                      className={`w-full group relative cursor-pointer opacity-90 hover:opacity-100 transition-all p-[2px] rounded-[12px] active:scale-[0.98] ${
-                        showHistory
-                          ? "bg-gradient-to-t from-[#8122b0] to-[#dc98fd]"
-                          : "bg-zinc-200 dark:bg-black bg-gradient-to-t from-zinc-200 to-zinc-300 dark:from-zinc-700 dark:to-zinc-500"
-                      }`}
-                    >
-                      <div
-                        className={`flex items-center gap-3 px-4 py-2 rounded-[10px] font-medium transition-all ${
-                          showHistory
-                            ? "bg-gradient-to-t from-[#a62ce2] to-[#c045fc] text-white"
-                            : "bg-white text-zinc-900 dark:text-white dark:bg-gradient-to-t dark:from-zinc-800 dark:to-zinc-700"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 flex-1">
-                          <div
-                            className={`p-2 rounded-lg transition-colors ${
-                              showHistory
-                                ? ""
-                                : "bg-zinc-100 dark:bg-transparent"
-                            }`}
-                          >
-                            <Clock
-                              className={`w-4 h-4 ${showHistory ? "" : "text-zinc-500 dark:text-white"}`}
-                            />
-                          </div>
-                          <div className="text-left">
-                            <div
-                              className={`font-semibold text-sm ${showHistory ? "text-white" : "text-zinc-900 dark:text-white"}`}
-                            >
-                              {t("recentServers")}
-                            </div>
-                            <div
-                              className={`text-xs transition-colors ${
-                                showHistory
-                                  ? "text-purple-100"
-                                  : "text-zinc-500 dark:text-zinc-400"
-                              }`}
-                            >
-                              {serverHistory.length}{" "}
-                              {t("server", { count: serverHistory.length })}
-                            </div>
-                          </div>
-                        </div>
-                        <ChevronDown
-                          className={`w-5 h-5 transition-transform duration-300 ${
-                            showHistory
-                              ? "rotate-180 text-white"
-                              : "text-zinc-400 dark:text-zinc-400"
-                          }`}
-                        />
-                      </div>
-                    </button>
-
-                    <div
-                      className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top z-50 ${
-                        showHistory
-                          ? "opacity-100 scale-y-100 pointer-events-auto"
-                          : "opacity-0 scale-y-95 pointer-events-none"
-                      }`}
-                    >
-                      <div className="max-h-96 overflow-y-auto">
-                        {serverHistory.map((server, index) => (
-                          <div
-                            key={server.id}
-                            onMouseEnter={() =>
-                              setServersHistoryHoveredId(server.id)
-                            }
-                            onMouseLeave={() =>
-                              setServersHistoryHoveredId(null)
-                            }
-                            className={`group relative transition-colors duration-150 ${
-                              index !== serverHistory.length - 1
-                                ? "border-b border-zinc-100 dark:border-zinc-700"
-                                : ""
-                            } ${
-                              serversHistoryHoveredId === server.id
-                                ? "bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-zinc-700/50"
-                                : "hover:bg-gradient-to-r hover:from-purple-25 hover:to-transparent dark:hover:from-zinc-700/30 dark:hover:to-transparent"
-                            }`}
-                          >
-                            <button
-                              onClick={() => {
-                                setServerId(server.id);
-                                fetchServerData(server.id);
-                                setShowHistory(false);
-                              }}
-                              className="w-full text-left px-4 py-3 transition-all duration-150"
-                            >
-                              <div className="flex items-start gap-3">
-                                <div className="p-2 bg-zinc-100 dark:bg-zinc-950 rounded-lg mt-0.5">
-                                  <Server className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-medium text-sm text-gray-900 dark:text-white truncate group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                                    {server.name}
-                                  </div>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
-                                      {server.id}
-                                    </span>
-                                    <span className="text-xs text-gray-400 dark:text-gray-500">
-                                      •
-                                    </span>
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                                      {formatDate(new Date(server.lastVisited))}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setServerHistory((prev) => {
-                                      const updatedHistory = prev.filter(
-                                        (s) => s.id !== server.id,
-                                      );
-                                      localStorage.setItem(
-                                        "serverHistory",
-                                        JSON.stringify(updatedHistory),
-                                      );
-                                      return updatedHistory;
-                                    });
-                                  }}
-                                  className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:text-zinc-500 dark:hover:text-zinc-300 dark:hover:bg-zinc-950 opacity-0 group-hover:opacity-100 transition-all duration-150 flex-shrink-0 cursor-pointer"
-                                  title={t("removeFromHistory")}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </div>
-                              </div>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold">{t("playerList")}</h2>
-
-                  <div className="relative" ref={sortRef}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowSortDropdown(!showSortDropdown);
-                      }}
-                      className="flex items-center justify-between gap-2 px-3 py-2 h-9 min-w-[140px] text-sm font-medium bg-white/50 backdrop-blur-sm border border-zinc-200 rounded-md shadow-sm hover:bg-zinc-100/50 hover:text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:bg-zinc-950/50 dark:border-zinc-800 dark:hover:border-zinc-700 dark:hover:bg-zinc-950/50 dark:hover:text-zinc-50 dark:focus:ring-zinc-900 transition-colors backdrop-blur-sm"
-                    >
-                      <span className="flex items-center gap-2">
-                        <ArrowUpDown className="w-4 h-4 text-zinc-500" />
-                        <span>
-                          {sortField === "id" && t("id")}
-                          {sortField === "name" && t("name")}
-                          {sortField === "ping" && t("ping")}
-                        </span>
-                      </span>
-                      <ChevronDown className="w-4 h-4 opacity-50" />
-                    </button>
-
-                    {showSortDropdown && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white border border-zinc-200 rounded-md shadow-md z-50 p-1 dark:bg-zinc-950 dark:border-zinc-800 animate-in fade-in-80 zoom-in-95 slide-in-from-top-2 origin-top">
-                        <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wide px-2 py-1.5 mb-1 dark:text-zinc-400">
-                          Trier par
-                        </div>
-                        {[
-                          { field: "id" as SortField, label: "ID" },
-                          { field: "name" as SortField, label: "Nom" },
-                          { field: "ping" as SortField, label: "Ping" },
-                        ].map((option) => (
-                          <button
-                            key={option.field}
-                            onClick={() => {
-                              setSortField(option.field);
-                              setShowSortDropdown(false);
-                            }}
-                            className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 dark:focus:bg-zinc-800 dark:focus:text-zinc-50 ${sortField === option.field ? "font-medium" : ""}`}
-                          >
-                            <span className="flex h-4 w-4 items-center justify-center mr-2">
-                              {sortField === option.field && (
-                                <Check className="h-4 w-4" />
-                              )}
-                            </span>
-                            {option.label}
-                          </button>
-                        ))}
-                        <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-1 -mx-1" />
-                        <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wide px-2 py-1.5 mb-1 dark:text-zinc-400">
-                          {t("order")}
-                        </div>
-                        <button
-                          onClick={() => {
-                            setSortOrder("asc");
-                            setShowSortDropdown(false);
-                          }}
-                          className={`relative flex w-full cursor-pointer select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 dark:focus:bg-zinc-800 dark:focus:text-zinc-50 ${sortOrder === "asc" ? "font-medium" : ""}`}
-                        >
-                          <span className="flex items-center">
-                            <span className="flex h-4 w-4 items-center justify-center mr-2">
-                              {sortOrder === "asc" && (
-                                <Check className="h-4 w-4" />
-                              )}
-                            </span>
-                            {t("ascending")}
-                          </span>
-                          <ArrowUp className="w-4 h-4 text-zinc-500" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSortOrder("desc");
-                            setShowSortDropdown(false);
-                          }}
-                          className={`relative flex w-full cursor-pointer select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 dark:focus:bg-zinc-800 dark:focus:text-zinc-50 ${sortOrder === "desc" ? "font-medium" : ""}`}
-                        >
-                          <span className="flex items-center">
-                            <span className="flex h-4 w-4 items-center justify-center mr-2">
-                              {sortOrder === "desc" && (
-                                <Check className="h-4 w-4" />
-                              )}
-                            </span>
-                            {t("descending")}
-                          </span>
-                          <ArrowDown className="w-4 h-4 text-zinc-500" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 w-full">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder={t("searchPlaceholder")}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-950 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400 w-full ring-1 ring-transparent focus:ring-purple-500 focus:border-purple-500 transition-all"
-                    />
-                  </div>
-                  <div className="flex items-center bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-600 rounded-lg overflow-hidden" style={{height:"-webkit-fill-available"}}>
-                    {(
-                      [
-                        { mode: "startsWith" as SearchMode, label: t("searchStartsWith") },
-                        { mode: "contains" as SearchMode, label: t("searchContains") },
-                        { mode: "endsWith" as SearchMode, label: t("searchEndsWith") },
-                      ] as const
-                    ).map((opt) => (
-                      <button
-                        key={opt.mode}
-                        onClick={() => setSearchMode(opt.mode)}
-                        className={`px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap h-full ${
-                          searchMode === opt.mode
-                            ? "bg-purple-600 text-white"
-                            : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                {loading ? (
-                  <PlayersTableSkeleton />
-                ) : (
-                  <div
-                    className="overflow-x-auto overflow-y-auto max-h-[600px] rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-sm"
-                    onScroll={handleTableScroll}
-                  >
-                    <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700 relative">
-                      <thead className="bg-zinc-50 dark:bg-zinc-950 sticky top-0 z-10 shadow-sm">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800">
-                            {t("hash")}
-                          </th>
-                          <th
-                            className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800 cursor-pointer hover:bg-zinc-100 hover:dark:bg-zinc-900 transition-colors group"
-                            onClick={() => handleSort("id")}
-                          >
-                            <div className="flex items-center gap-1 select-none">
-                              {t("id")}
-                              {sortField === "id" ? (
-                                <span className="text-purple-600 dark:text-purple-400">
-                                  {sortOrder === "asc" ? (
-                                    <ArrowUp className="w-3 h-3" />
-                                  ) : (
-                                    <ArrowDown className="w-3 h-3" />
-                                  )}
-                                </span>
-                              ) : (
-                                <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
-                              )}
-                            </div>
-                          </th>
-                          <th
-                            className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800 cursor-pointer hover:bg-zinc-100 hover:dark:bg-zinc-900 transition-colors group"
-                            onClick={() => handleSort("name")}
-                          >
-                            <div className="flex items-center gap-1 select-none">
-                              {t("name")}
-                              {sortField === "name" ? (
-                                <span className="text-purple-600 dark:text-purple-400">
-                                  {sortOrder === "asc" ? (
-                                    <ArrowUp className="w-3 h-3" />
-                                  ) : (
-                                    <ArrowDown className="w-3 h-3" />
-                                  )}
-                                </span>
-                              ) : (
-                                <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
-                              )}
-                            </div>
-                          </th>
-                          <th
-                            className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800 cursor-pointer hover:bg-zinc-100 hover:dark:bg-zinc-900 transition-colors group"
-                            onClick={() => handleSort("ping")}
-                          >
-                            <div className="flex items-center gap-1 select-none">
-                              {t("ping")}
-                              {sortField === "ping" ? (
-                                <span className="text-purple-600 dark:text-purple-400">
-                                  {sortOrder === "asc" ? (
-                                    <ArrowUp className="w-3 h-3" />
-                                  ) : (
-                                    <ArrowDown className="w-3 h-3" />
-                                  )}
-                                </span>
-                              ) : (
-                                <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
-                              )}
-                            </div>
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800">
-                            {t("links")}
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800">
-                            {t("actions")}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white dark:bg-zinc-950 divide-y divide-zinc-200 dark:divide-zinc-700">
-                        {filteredPlayers.map((player, index) => {
-                          const socialLinks = extractSocialLinks(
-                            player.identifiers || [],
-                          );
-                          return (
-                            <tr
-                              key={player.id}
-                              className="hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                            >
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                {index + 1}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-mono">
-                                {player.id}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                {player.name}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                <span
-                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                    player.ping < 50
-                                      ? "bg-green-100 text-green-800"
-                                      : player.ping < 100
-                                        ? "bg-yellow-100 text-yellow-800"
-                                        : "bg-red-100 text-red-800"
-                                  }`}
-                                >
-                                  {player.ping}ms
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                <div className="flex space-x-1">
-                                  {socialLinks.steam && (
-                                    <a
-                                      href={socialLinks.steam}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-blue-500 hover:text-blue-600"
-                                      title="Profil Steam"
-                                    >
-                                      💨
-                                    </a>
-                                  )}
-                                  {socialLinks.discord && (
-                                    <a
-                                      href={socialLinks.discord}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-indigo-500 hover:text-indigo-600"
-                                      title="Profil Discord"
-                                    >
-                                      💬
-                                    </a>
-                                  )}
-                                  {!socialLinks.steam &&
-                                    !socialLinks.discord && (
-                                      <span className="text-gray-400">-</span>
-                                    )}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                <button
-                                  onClick={() => toggleFavorite(player)}
-                                  className={`p-1 rounded ${
-                                    isPlayerFavorite(player.name)
-                                      ? "text-yellow-500 hover:text-yellow-600"
-                                      : "text-gray-400 hover:text-gray-500"
-                                  }`}
-                                  title={
-                                    isPlayerFavorite(player.name)
-                                      ? "Retirer des favoris"
-                                      : "Ajouter aux favoris"
-                                  }
-                                >
-                                  {isPlayerFavorite(player.name) ? (
-                                    <Star className="h-5 w-5 fill-yellow-500" />
-                                  ) : (
-                                    <Star className="h-5 w-5" />
-                                  )}
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                    {(() => {
-                      const totalFilteredPlayers =
-                        serverInfo?.players?.filter((player) =>
-                          checkPlayerMatch(player.name, searchTerm, searchMode),
-                        ).length || 0;
-
-                      return displayedPlayersLimit < totalFilteredPlayers ? (
-                        <div className="text-center py-4 text-sm text-gray-500 dark:text-gray-400">
-                          {t("displayingPlayers", {
-                            displayed: displayedPlayersLimit,
-                            total: totalFilteredPlayers,
-                          })}
-                        </div>
-                      ) : null;
-                    })()}
-                  </div>
-                )}
-                {filteredPlayers.length === 0 && searchTerm.trim() !== "" && (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400 bg-white dark:bg-zinc-950 rounded-lg border border-zinc-200 dark:border-zinc-700 m-0">
-                    {t("noSearchResults")}
-                    <br />
-                    <button
-                      onClick={() => setSearchTerm("")}
-                      className="mt-2 px-4 py-2 text-purple-600 rounded-lg hover:text-purple-700 hover:underline"
-                    >
-                      {t("clearSearch")}
-                    </button>
-                  </div>
-                )}
-              </div>
-            )
-          )}
-
-          {currentTab === "favorites" && (
-            <div>
-              <h2 className="text-xl font-semibold mb-4">
-                {t("favoritePlayers")}
-              </h2>
-
-              {/* Manual add input */}
-              <div className="flex items-center gap-2 mb-4">
-                <div className="relative flex-1">
-                  <UserPlus className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder={t("addFavoriteByNamePlaceholder")}
-                    value={addFavoriteName}
-                    onChange={(e) => setAddFavoriteName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") addFavoriteManually();
+            <>
+              {currentTab === "players" && (
+                <div className="flex flex-col gap-6">
+                  <ServerHistoryComponent
+                    serverHistory={serverHistory}
+                    onSelectServer={(id) => { setServerId(id); fetchServerData(id); }}
+                    onRemoveFromHistory={(id) => {
+                      const updated = serverHistory.filter(s => s.id !== id);
+                      setServerHistory(updated);
+                      saveServerHistory(updated);
                     }}
-                    className="pl-10 pr-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-950 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400 w-full ring-1 ring-transparent focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    formatDate={(date) => formatDate(date, t, locale)}
+                  />
+                  <PlayerFilters
+                    searchTerm={searchTerm} setSearchTerm={setSearchTerm}
+                    searchMode={searchMode} setSearchMode={setSearchMode}
+                    sortField={sortField} setSortField={setSortField}
+                    sortOrder={sortOrder} setSortOrder={setSortOrder}
+                  />
+                  <PlayersTable
+                    players={filteredPlayers}
+                    loading={loading}
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    handleSort={handleSort}
+                    toggleFavorite={toggleFavorite}
+                    isPlayerFavorite={(name) => favorites.some(f => f.name.toLowerCase() === name.toLowerCase())}
+                    displayedPlayersLimit={displayedPlayersLimit}
+                    totalFilteredPlayers={serverInfo.players.filter(p => checkPlayerMatch(p.name, searchTerm, searchMode)).length}
+                    handleTableScroll={handleTableScroll}
                   />
                 </div>
-                <button
-                  onClick={addFavoriteManually}
-                  className="relative cursor-pointer opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#8122b0] to-[#dc98fd] active:scale-95"
-                >
-                  <span className="flex items-center gap-2 px-4 py-2 bg-[#B931FC] text-white rounded-[10px] bg-gradient-to-t from-[#a62ce2] to-[#c045fc] font-medium whitespace-nowrap text-sm">
-                    <Plus className="w-4 h-4" />
-                    {t("addFavoriteButton")}
-                  </span>
-                </button>
-              </div>
-
-              {favorites.length === 0 ? (
-                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                  {t("noFavoritePlayers")}
-                </div>
-              ) : (
-                <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
-                  <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-                    <thead className="bg-zinc-50 dark:bg-zinc-950">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                          {t("name")}
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                          {t("id")}
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                          {t("ping")}
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                          {t("actions")}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white dark:bg-zinc-950 divide-y divide-zinc-200 dark:divide-zinc-700">
-                      {favorites.map((fav) => {
-                        // Find this player on the server by NAME (not ID)
-                        const onlinePlayer = serverInfo?.players.find(
-                          (p) =>
-                            p.name.toLowerCase() === fav.name.toLowerCase(),
-                        );
-                        const isOnline = !!onlinePlayer;
-                        const displayId = isOnline
-                          ? onlinePlayer.id
-                          : fav.lastKnownId;
-
-                        return (
-                          <tr
-                            key={fav.name}
-                            className="hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                          >
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={`inline-block w-2 h-2 rounded-full ${
-                                    isOnline ? "bg-green-500 animate-pulse" : "bg-zinc-400"
-                                  }`}
-                                />
-                                <span className="font-medium">{fav.name}</span>
-                                <span
-                                  className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full ${
-                                    isOnline
-                                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                      : "bg-zinc-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400"
-                                  }`}
-                                >
-                                  {isOnline ? t("online") : t("offline")}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-mono">
-                              <div className="flex items-center gap-1.5">
-                                <span>{displayId || "—"}</span>
-                                {displayId > 0 && (
-                                  <span
-                                    className={`text-[10px] px-1.5 py-0.5 rounded ${
-                                      isOnline
-                                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                                        : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500"
-                                    }`}
-                                  >
-                                    {isOnline ? t("currentId") : t("lastKnownId")}
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              {isOnline && onlinePlayer ? (
-                                <span
-                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                    onlinePlayer.ping < 50
-                                      ? "bg-green-100 text-green-800"
-                                      : onlinePlayer.ping < 100
-                                        ? "bg-yellow-100 text-yellow-800"
-                                        : "bg-red-100 text-red-800"
-                                  }`}
-                                >
-                                  {onlinePlayer.ping}ms
-                                </span>
-                              ) : (
-                                <span className="text-zinc-400">—</span>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <button
-                                onClick={() =>
-                                  setFavorites((prev) =>
-                                    prev.filter(
-                                      (f) =>
-                                        f.name.toLowerCase() !==
-                                        fav.name.toLowerCase(),
-                                    ),
-                                  )
-                                }
-                                className="text-red-400 hover:text-red-500 p-1 transition-colors"
-                                title={t("removeFromFavorites")}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
               )}
-            </div>
-          )}
-
-          {currentTab === "statistics" && (
-            <div>
-              <h2 className="text-xl font-semibold mb-4">
-                {t("statisticsTitle")}
-              </h2>
-              {loading ? (
-                <StatisticsSkeleton />
-              ) : !serverInfo ? (
-                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                  {t("loadServerForStats")}
-                </div>
-              ) : (
-                <Suspense fallback={<StatisticsSkeleton />}>
-                  <StatisticsCharts players={serverInfo.players} />
-                </Suspense>
+              {currentTab === "favorites" && (
+                <FavoritesManager
+                  favorites={favorites} setFavorites={setFavorites}
+                  addFavoriteName={addFavoriteName} setAddFavoriteName={setAddFavoriteName}
+                  addFavoriteManually={addFavoriteManually}
+                  serverPlayers={serverInfo.players}
+                />
               )}
-            </div>
+              {currentTab === "statistics" && <Statistics serverInfo={serverInfo} loading={loading} />}
+            </>
           )}
-          <div className="fixed bottom-4 right-4 bg-white dark:bg-zinc-950 px-3 py-2 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 z-50 flex items-center gap-2">
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {t("lastRefresh")} :{" "}
-              {lastRefreshTimestamp
-                ? new Date(lastRefreshTimestamp).toLocaleString()
-                : t("never")}
-            </span>
-          </div>
+          <RefreshBadge lastRefreshTimestamp={lastRefreshTimestamp} />
         </main>
-
         <Footer />
-
-        {/* Notifications */}
-        <NotificationContainer
-          notifications={notifications}
-          onClose={removeNotification}
-        />
+        <NotificationContainer notifications={notifications} onClose={removeNotification} />
       </div>
     </>
   );

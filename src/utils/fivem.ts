@@ -1,10 +1,9 @@
-// FiveM Viewer Utils
-
 /**
  * Cleans FiveM color codes from a string
  * Ex: "^2Hello ^0World" becomes "Hello World"
  */
 export function cleanFiveMColors(text: string): string {
+  if (!text) return "";
   return text.replace(/\^\d/g, "");
 }
 
@@ -12,7 +11,7 @@ export function cleanFiveMColors(text: string): string {
  * Extracts Discord information from server variables
  */
 export function extractDiscordLink(
-  vars: Record<string, unknown>,
+  vars: Record<string, unknown> | undefined,
 ): string | undefined {
   if (!vars?.Discord || typeof vars.Discord !== "string") return undefined;
 
@@ -31,12 +30,18 @@ export function extractSocialLinks(identifiers: string[]): {
 } {
   const links: { steam?: string; discord?: string } = {};
 
+  if (!identifiers) return links;
+
   for (const id of identifiers) {
     if (id.startsWith("steam:")) {
       const steamId = id.replace("steam:", "");
-      links.steam = `https://steamcommunity.com/profiles/${BigInt(
-        "0x" + steamId,
-      ).toString()}`;
+      try {
+        links.steam = `https://steamcommunity.com/profiles/${BigInt(
+          "0x" + steamId,
+        ).toString()}`;
+      } catch (e) {
+        console.warn("Invalid Steam ID:", steamId);
+      }
     } else if (id.startsWith("discord:")) {
       const discordId = id.replace("discord:", "");
       links.discord = `https://discord.com/users/${discordId}`;
