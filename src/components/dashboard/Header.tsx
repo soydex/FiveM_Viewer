@@ -1,8 +1,11 @@
 "use client";
 
-import { Command, Play, RefreshCw } from "lucide-react";
+import { Command, Play, RefreshCw, Activity } from "lucide-react";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "../LanguageSwitcher";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface HeaderProps {
   serverId: string;
@@ -25,31 +28,49 @@ const Header = ({
 }: HeaderProps) => {
   const t = useTranslations("common");
 
+  const { data: globalCounts } = useSWR(
+    "https://static.cfx.re/runtime/counts.json",
+    fetcher,
+    { refreshInterval: 60000 }
+  );
+
+  const globalTotal = globalCounts ? (globalCounts[0] || 0).toLocaleString() : "...";
+
   return (
     <header className="shadow-sm bg-white dark:bg-zinc-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
-          <div
-            className="flex items-center gap-2 group cursor-pointer"
-            onClick={() => (window.location.href = "/")}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="48"
-              height="48"
-              viewBox="0 0 48 48"
-              className="dark:text-white group-hover:text-purple-600 w-10 h-10 transition-colors"
+          <div className="flex items-center gap-4">
+            <div
+              className="flex items-center gap-2 group cursor-pointer"
+              onClick={() => (window.location.href = "/")}
             >
-              <polygon fill="CurrentColor" points="5,45 9,34 21,22 15,45"></polygon>
-              <polygon fill="CurrentColor" points="25,18 33,45 43,45 32,12"></polygon>
-              <polygon fill="CurrentColor" points="16.059,14.164 20,3 28,3"></polygon>
-              <polygon fill="CurrentColor" points="10.731,29.002 23,17 23,15 11.58,26.667"></polygon>
-              <polygon fill="CurrentColor" points="15.142,16.429 13,22 29.724,5.725 28.818,3.178"></polygon>
-              <polygon fill="CurrentColor" points="23.932,14.055 24.377,15.626 30.941,9.178 30.385,7.702"></polygon>
-            </svg>
-            <h1 className="dark:text-white font-semibold text-lg group-hover:text-purple-600 transition-colors">
-              FiveM Viewer
-            </h1>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="48"
+                height="48"
+                viewBox="0 0 48 48"
+                className="dark:text-white group-hover:text-purple-600 w-10 h-10 transition-colors"
+              >
+                <polygon fill="CurrentColor" points="5,45 9,34 21,22 15,45"></polygon>
+                <polygon fill="CurrentColor" points="25,18 33,45 43,45 32,12"></polygon>
+                <polygon fill="CurrentColor" points="16.059,14.164 20,3 28,3"></polygon>
+                <polygon fill="CurrentColor" points="10.731,29.002 23,17 23,15 11.58,26.667"></polygon>
+                <polygon fill="CurrentColor" points="15.142,16.429 13,22 29.724,5.725 28.818,3.178"></polygon>
+                <polygon fill="CurrentColor" points="23.932,14.055 24.377,15.626 30.941,9.178 30.385,7.702"></polygon>
+              </svg>
+              <h1 className="dark:text-white font-semibold text-lg group-hover:text-purple-600 transition-colors">
+                FiveM Viewer
+              </h1>
+            </div>
+
+            <div className="hidden md:flex items-center px-3 py-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Activity className="w-3 h-3" />
+                {globalTotal} {t("globalPlayers")}
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center space-x-4">
