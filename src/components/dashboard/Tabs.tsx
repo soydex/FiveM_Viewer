@@ -37,9 +37,9 @@ const Tabs = ({
   ];
 
   return (
-    <nav className="bg-white border-zinc-200 border-b dark:bg-zinc-950 dark:border-zinc-700">
+    <nav className="bg-white border-zinc-200 border-b dark:bg-zinc-950 dark:border-zinc-700 sticky top-[72px] sm:top-[88px] z-20 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex space-x-8">
+        <div className="flex space-x-8 overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => (
             <button
               key={tab.id}
