@@ -39,36 +39,35 @@ A modern, responsive web application for viewing real-time player lists from Fiv
 
 ## Tech Stack
 
-- **Frontend**: React 19 + TypeScript + Vite
+- **Framework**: Next.js 16 (App Router)
+- **Frontend**: React 19 + TypeScript
 - **Styling**: TailwindCSS 4.x
 - **Charts**: Recharts for data visualization
 - **Icons**: Lucide React
-- **Routing**: React Router DOM
-- **Internationalization**: i18next for multilingual support
-- **Build Tool**: Vite with TypeScript
+- **Internationalization**: next-intl for multilingual support
+- **Deployment**: Vercel
 
 ## Development
 
 ### Prerequisites
 - Node.js 18+
-- pnpm (recommended) or npm
+- bun (recommended), pnpm, or npm
 
 ### Installation
 ```bash
-
 # Install dependencies
-pnpm install
+bun install
 
 # Start development server
-pnpm dev
+bun dev
 ```
 
 ### Available Scripts
 ```bash
-pnpm dev          # Start development server on localhost:5173
-pnpm build        # Production build
-pnpm preview      # Preview production build
-pnpm lint         # ESLint checking
+bun dev          # Start development server
+bun build        # Production build
+bun start        # Start production server
+bun lint         # Lint with Biome
 ```
 
 ## 🚀 Deployment
@@ -76,38 +75,28 @@ pnpm lint         # ESLint checking
 ### Vercel (Recommended)
 
 1. **Connect your GitHub repository** to Vercel
-2. **Deploy automatically** - Vercel will detect the Vite configuration
-3. **Custom domain** (optional) - Add your domain in Vercel settings
+2. **Deploy automatically** - Vercel will detect the Next.js configuration
 
-The `vercel.json` file is configured for:
-- ✅ SPA routing support (React Router)
-- ✅ Security headers
-- ✅ Automatic deployments on push
+The `vercel.json` file is configured for security headers.
 
 
 ### Project Structure
 ```
 src/
-├── components/          # Reusable UI components
-│   ├── Footer.tsx      # Site footer
-│   ├── LanguageSwitcher.tsx # Language selection component
-│   ├── Mobile.tsx      # Mobile-specific layout
-│   ├── Notifications.tsx # Toast notification system
-│   ├── StatisticsCharts.tsx # ReChart.js integration
-│   └── TopServ.tsx     # Top servers display
+├── app/                # Next.js App Router (Internationalized)
+│   ├── [locale]/       # Locale-specific routes
+│   │   ├── terms/      # Terms of Service page
+│   │   ├── layout.tsx  # Root layout with next-intl Providers
+│   │   └── page.tsx    # Main dashboard page
+│   ├── api/            # API Proxy routes for FiveM
+│   └── globals.css     # Global styles (Tailwind 4)
+├── components/         # Reusable UI components
 ├── hooks/              # Custom React hooks
-│   └── useNotifications.ts # Notification management
-├── locales/            # Internationalization files
-│   ├── en/
-│   │   └── common.json # English translations
-│   └── fr/
-│       └── common.json # French translations
-├── pages/              # Page components
-│   ├── Origin.tsx      # Main application page
-│   └── Terms.tsx       # Terms of service
-├── i18n.ts             # i18next configuration
-├── utils.ts            # Utility functions
-└── main.tsx            # Application entry point
+├── i18n/               # next-intl configuration
+├── utils/              # Utility functions
+├── middleware.ts       # next-intl middleware
+└── routing.ts          # next-intl routing definition
+messages/               # Translation files (en.json, fr.json)
 ```
 
 ## ⚖️ Legal Notice
