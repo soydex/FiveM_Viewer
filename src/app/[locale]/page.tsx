@@ -241,7 +241,7 @@ function App() {
 
   const filteredPlayers = useMemo(() => {
     if (!serverInfo?.players) return [];
-    const filtered = serverInfo.players.filter(p => checkPlayerMatch(p.name, searchTerm, searchMode));
+    const filtered = serverInfo.players.filter(p => checkPlayerMatch(p, searchTerm, searchMode));
     filtered.sort((a, b) => {
       let av = sortField === "id" ? a.id : sortField === "name" ? a.name.toLowerCase() : a.ping;
       let bv = sortField === "id" ? b.id : sortField === "name" ? b.name.toLowerCase() : b.ping;
@@ -315,7 +315,7 @@ function App() {
                     toggleFavorite={toggleFavorite}
                     isPlayerFavorite={(name) => favorites.some(f => f.name.toLowerCase() === name.toLowerCase())}
                     displayedPlayersLimit={displayedPlayersLimit}
-                    totalFilteredPlayers={serverInfo.players.filter(p => checkPlayerMatch(p.name, searchTerm, searchMode)).length}
+                    totalFilteredPlayers={serverInfo.players.filter(p => checkPlayerMatch(p, searchTerm, searchMode)).length}
                     handleTableScroll={handleTableScroll}
                   />
                 </div>

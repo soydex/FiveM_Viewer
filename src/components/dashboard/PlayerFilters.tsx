@@ -10,10 +10,10 @@ import {
   Check 
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { SearchMode } from "../../utils/search";
 
 type SortField = "id" | "name" | "ping";
 type SortOrder = "asc" | "desc";
-type SearchMode = "contains" | "startsWith" | "endsWith";
 
 interface PlayerFiltersProps {
   searchTerm: string;
@@ -147,6 +147,7 @@ const PlayerFilters = ({
               { mode: "startsWith" as SearchMode, label: t("searchStartsWith") },
               { mode: "contains" as SearchMode, label: t("searchContains") },
               { mode: "endsWith" as SearchMode, label: t("searchEndsWith") },
+              { mode: "id" as SearchMode, label: t("searchId") },
             ] as const
           ).map((opt) => (
             <button
