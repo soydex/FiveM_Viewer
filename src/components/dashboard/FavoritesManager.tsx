@@ -1,6 +1,6 @@
 "use client";
 
-import { UserPlus, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, UserPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface FavoritePlayer {
@@ -69,10 +69,18 @@ const FavoritesManager = ({
           <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
             <thead className="bg-zinc-50 dark:bg-zinc-950">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{t("name")}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{t("id")}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{t("ping")}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">{t("actions")}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  {t("name")}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  {t("id")}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  {t("ping")}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  {t("actions")}
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-zinc-950 divide-y divide-zinc-200 dark:divide-zinc-700">
@@ -84,12 +92,19 @@ const FavoritesManager = ({
                 const displayId = isOnline ? onlinePlayer.id : fav.lastKnownId;
 
                 return (
-                  <tr key={fav.name} className="hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
+                  <tr
+                    key={fav.name}
+                    className="hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="flex items-center gap-2">
-                        <span className={`inline-block w-2 h-2 rounded-full ${isOnline ? "bg-green-500 animate-pulse" : "bg-zinc-400"}`} />
+                        <span
+                          className={`inline-block w-2 h-2 rounded-full ${isOnline ? "bg-green-500 animate-pulse" : "bg-zinc-400"}`}
+                        />
                         <span className="font-medium">{fav.name}</span>
-                        <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full ${isOnline ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" : "bg-zinc-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400"}`}>
+                        <span
+                          className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full ${isOnline ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" : "bg-zinc-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400"}`}
+                        >
                           {isOnline ? t("online") : t("offline")}
                         </span>
                       </div>
@@ -98,7 +113,9 @@ const FavoritesManager = ({
                       <div className="flex items-center gap-1.5">
                         <span>{displayId || "—"}</span>
                         {displayId > 0 && (
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${isOnline ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500"}`}>
+                          <span
+                            className={`text-[10px] px-1.5 py-0.5 rounded ${isOnline ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500"}`}
+                          >
                             {isOnline ? t("currentId") : t("lastKnownId")}
                           </span>
                         )}
@@ -106,14 +123,25 @@ const FavoritesManager = ({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {isOnline && onlinePlayer ? (
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${onlinePlayer.ping < 50 ? "bg-green-100 text-green-800" : onlinePlayer.ping < 100 ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800"}`}>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${onlinePlayer.ping < 50 ? "bg-green-100 text-green-800" : onlinePlayer.ping < 100 ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800"}`}
+                        >
                           {onlinePlayer.ping}ms
                         </span>
-                      ) : <span className="text-zinc-400">—</span>}
+                      ) : (
+                        <span className="text-zinc-400">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <button
-                        onClick={() => setFavorites((prev) => prev.filter((f) => f.name.toLowerCase() !== fav.name.toLowerCase()))}
+                        onClick={() =>
+                          setFavorites((prev) =>
+                            prev.filter(
+                              (f) =>
+                                f.name.toLowerCase() !== fav.name.toLowerCase(),
+                            ),
+                          )
+                        }
                         className="text-red-400 hover:text-red-500 p-1 transition-colors"
                         title={t("removeFromFavorites")}
                       >

@@ -1,4 +1,4 @@
-import { Smartphone, AlertTriangle } from "lucide-react";
+import { AlertTriangle, Smartphone } from "lucide-react";
 
 const Mobile = () => {
   return (

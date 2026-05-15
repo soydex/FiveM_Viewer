@@ -1,8 +1,8 @@
 "use client";
 
-import useSWR from "swr";
+import { Activity, TrendingUp, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Users, TrendingUp, Activity } from "lucide-react";
+import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -11,19 +11,21 @@ interface StatCardProps {
   current: number;
   peak: number;
   icon: React.ReactNode;
-  }
+}
 
 const StatCard = ({ title, current, peak, icon }: StatCardProps) => {
   const t = useTranslations("common");
-  
+
   return (
-    <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all hover:shadow-md">
+    <div className="bg-white dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all hover:shadow-md">
       <div className="flex items-center justify-between mb-4">
         <div className={`p-3 rounded-lg bg-opacity-10 dark:bg-opacity-20`}>
           {icon}
         </div>
         <div className="text-right">
-          <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{title}</p>
+          <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+            {title}
+          </p>
           <p className="text-2xl font-bold text-zinc-900 dark:text-white">
             {current.toLocaleString()}
           </p>
@@ -32,7 +34,9 @@ const StatCard = ({ title, current, peak, icon }: StatCardProps) => {
       <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 border-t border-zinc-100 dark:border-zinc-800 pt-4">
         <TrendingUp className="w-4 h-4 text-purple-500" />
         <span>{t("peak24h")}: </span>
-        <span className="font-semibold text-zinc-900 dark:text-zinc-200">{peak.toLocaleString()}</span>
+        <span className="font-semibold text-zinc-900 dark:text-zinc-200">
+          {peak.toLocaleString()}
+        </span>
       </div>
     </div>
   );
@@ -40,11 +44,11 @@ const StatCard = ({ title, current, peak, icon }: StatCardProps) => {
 
 const GlobalStats = () => {
   const t = useTranslations("common");
-  
+
   const { data: fivemData, error: fivemError } = useSWR(
     "https://static.cfx.re/runtime/counts.json",
     fetcher,
-    { refreshInterval: 60000 }
+    { refreshInterval: 60000 },
   );
 
   if (fivemError) return null;
@@ -52,7 +56,10 @@ const GlobalStats = () => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
         {[1, 2].map((i) => (
-          <div key={i} className="h-32 bg-gray-200 dark:bg-zinc-800 rounded-xl" />
+          <div
+            key={i}
+            className="h-32 bg-gray-200 dark:bg-zinc-800 rounded-xl"
+          />
         ))}
       </div>
     );

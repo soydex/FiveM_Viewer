@@ -1,7 +1,7 @@
 "use client";
 
+import { BarChart3, Heart, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Users, Heart, BarChart3 } from "lucide-react";
 
 type TabType = "players" | "favorites" | "statistics";
 

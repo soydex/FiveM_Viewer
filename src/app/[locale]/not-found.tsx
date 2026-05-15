@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FileQuestion, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FileQuestion, Home } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "../../routing";
 
 export default function NotFound() {

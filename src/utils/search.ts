@@ -9,9 +9,9 @@ export function checkPlayerMatch(
   mode: SearchMode,
 ): boolean {
   if (!term.trim()) return true;
-  
+
   const search = term.toLowerCase();
-  
+
   if (mode === "id") {
     return player.id.toString() === term.trim();
   }

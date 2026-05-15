@@ -1,4 +1,4 @@
-import { Github, Twitter, Glasses, Mail } from "lucide-react";
+import { Github, Glasses, Mail, Twitter } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 const Footer = () => {

@@ -23,25 +23,25 @@ const TopServ = ({ topServers, loading, onSelectServer }: TopServProps) => {
         <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-6">
           {t("pinnedServers")}
         </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {Array.from({ length: 8 }).map((_, index) => (
-          <div
-            key={index}
-            className="p-5 rounded-2xl border bg-white border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800 animate-pulse"
-          >
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="h-6 bg-zinc-200 dark:bg-zinc-800 rounded w-32"></div>
-                <div className="h-6 bg-zinc-200 dark:bg-zinc-800 rounded w-12"></div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="h-4 bg-zinc-200 dark:bg-zinc-800 rounded w-20"></div>
-                <div className="h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full w-24"></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <div
+              key={index}
+              className="p-5 rounded-2xl border bg-white border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800 animate-pulse"
+            >
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="h-6 bg-zinc-200 dark:bg-zinc-800 rounded w-32"></div>
+                  <div className="h-6 bg-zinc-200 dark:bg-zinc-800 rounded w-12"></div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="h-4 bg-zinc-200 dark:bg-zinc-800 rounded w-20"></div>
+                  <div className="h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full w-24"></div>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -70,7 +70,7 @@ const TopServ = ({ topServers, loading, onSelectServer }: TopServProps) => {
                   {server.id}
                 </span>
               </div>
-              
+
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
                   <Users className="w-4 h-4 text-purple-500" />
@@ -78,16 +78,21 @@ const TopServ = ({ topServers, loading, onSelectServer }: TopServProps) => {
                     {server.currentPlayers.toLocaleString()}
                   </span>
                 </div>
-                
+
                 <div className="w-24 h-1.5 bg-zinc-100 dark:bg-zinc-900 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
-                    style={{ width: `${Math.min(100, (server.currentPlayers / server.maxPlayers) * 100)}%` }}
+                    style={{
+                      width: `${Math.min(100, (server.currentPlayers / server.maxPlayers) * 100)}%`,
+                    }}
                   />
                 </div>
-                
+
                 <span className="text-xs text-zinc-400">
-                  {Math.round((server.currentPlayers / server.maxPlayers) * 100)}%
+                  {Math.round(
+                    (server.currentPlayers / server.maxPlayers) * 100,
+                  )}
+                  %
                 </span>
               </div>
             </div>

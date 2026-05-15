@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+
 const SupportMe = () => {
   const t = useTranslations("common");
 

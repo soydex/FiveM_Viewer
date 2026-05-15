@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense } from "react";
-import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
+import { Suspense } from "react";
 import GlobalStats from "./GlobalStats";
 
 const StatisticsCharts = dynamic(
@@ -15,7 +15,10 @@ export function StatisticsSkeleton() {
     <div className="space-y-6 animate-pulse">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-32 bg-gray-200 dark:bg-zinc-800 rounded-xl" />
+          <div
+            key={i}
+            className="h-32 bg-gray-200 dark:bg-zinc-800 rounded-xl"
+          />
         ))}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

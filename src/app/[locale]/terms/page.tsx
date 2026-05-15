@@ -99,6 +99,7 @@ const Terms = async ({ params }: { params: Promise<{ locale: string }> }) => {
               href="https://github.com/soydex"
               className="text-sm hover:font-large text-zinc-300 hover:text-zinc-400 font-medium transition"
               target="_blank"
+              rel="noopener"
             >
               soydex
             </a>

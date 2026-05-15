@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { 
-  Search, 
-  ChevronDown, 
-  ArrowUpDown, 
-  ArrowUp, 
-  ArrowDown, 
-  Check 
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Check,
+  ChevronDown,
+  Search,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { SearchMode } from "../../utils/search";
+import { useEffect, useRef, useState } from "react";
+import type { SearchMode } from "../../utils/search";
 
 type SortField = "id" | "name" | "ping";
 type SortOrder = "asc" | "desc";
@@ -88,7 +88,9 @@ const PlayerFilters = ({
                   <span className="flex h-4 w-4 items-center justify-center mr-2">
                     {sortField === field && <Check className="h-4 w-4" />}
                   </span>
-                  {t(field === "id" ? "id" : field === "name" ? "name" : "ping")}
+                  {t(
+                    field === "id" ? "id" : field === "name" ? "name" : "ping",
+                  )}
                 </button>
               ))}
               <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-1 -mx-1" />
@@ -144,7 +146,10 @@ const PlayerFilters = ({
         <div className="flex items-center bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-600 rounded-lg overflow-hidden h-[42px]">
           {(
             [
-              { mode: "startsWith" as SearchMode, label: t("searchStartsWith") },
+              {
+                mode: "startsWith" as SearchMode,
+                label: t("searchStartsWith"),
+              },
               { mode: "contains" as SearchMode, label: t("searchContains") },
               { mode: "endsWith" as SearchMode, label: t("searchEndsWith") },
               { mode: "id" as SearchMode, label: t("searchId") },

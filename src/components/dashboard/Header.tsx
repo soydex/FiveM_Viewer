@@ -1,9 +1,9 @@
 "use client";
 
-import { Command, Play, RefreshCw, Activity } from "lucide-react";
+import { Activity, Command, Play, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
-import LanguageSwitcher from "../LanguageSwitcher";
 import useSWR from "swr";
+import LanguageSwitcher from "../LanguageSwitcher";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -31,10 +31,12 @@ const Header = ({
   const { data: globalCounts } = useSWR(
     "https://static.cfx.re/runtime/counts.json",
     fetcher,
-    { refreshInterval: 60000 }
+    { refreshInterval: 60000 },
   );
 
-  const globalTotal = globalCounts ? (globalCounts[0] || 0).toLocaleString() : "...";
+  const globalTotal = globalCounts
+    ? (globalCounts[0] || 0).toLocaleString()
+    : "...";
 
   return (
     <header className="shadow-sm bg-white dark:bg-zinc-950 sticky top-0 z-30">
@@ -52,12 +54,30 @@ const Header = ({
                 viewBox="0 0 48 48"
                 className="dark:text-white group-hover:text-purple-600 w-8 h-8 sm:w-10 sm:h-10 transition-colors"
               >
-                <polygon fill="CurrentColor" points="5,45 9,34 21,22 15,45"></polygon>
-                <polygon fill="CurrentColor" points="25,18 33,45 43,45 32,12"></polygon>
-                <polygon fill="CurrentColor" points="16.059,14.164 20,3 28,3"></polygon>
-                <polygon fill="CurrentColor" points="10.731,29.002 23,17 23,15 11.58,26.667"></polygon>
-                <polygon fill="CurrentColor" points="15.142,16.429 13,22 29.724,5.725 28.818,3.178"></polygon>
-                <polygon fill="CurrentColor" points="23.932,14.055 24.377,15.626 30.941,9.178 30.385,7.702"></polygon>
+                <polygon
+                  fill="CurrentColor"
+                  points="5,45 9,34 21,22 15,45"
+                ></polygon>
+                <polygon
+                  fill="CurrentColor"
+                  points="25,18 33,45 43,45 32,12"
+                ></polygon>
+                <polygon
+                  fill="CurrentColor"
+                  points="16.059,14.164 20,3 28,3"
+                ></polygon>
+                <polygon
+                  fill="CurrentColor"
+                  points="10.731,29.002 23,17 23,15 11.58,26.667"
+                ></polygon>
+                <polygon
+                  fill="CurrentColor"
+                  points="15.142,16.429 13,22 29.724,5.725 28.818,3.178"
+                ></polygon>
+                <polygon
+                  fill="CurrentColor"
+                  points="23.932,14.055 24.377,15.626 30.941,9.178 30.385,7.702"
+                ></polygon>
               </svg>
               <h1 className="dark:text-white font-semibold text-base sm:text-lg group-hover:text-purple-600 transition-colors truncate">
                 FiveM Viewer
@@ -120,7 +140,7 @@ const Header = ({
                   ID
                 </span>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => fetchServerData()}
@@ -133,7 +153,9 @@ const Header = ({
                     <Play
                       className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
                     />
-                    <span className="hidden sm:inline">{loading ? t("loading") : t("reload")}</span>
+                    <span className="hidden sm:inline">
+                      {loading ? t("loading") : t("reload")}
+                    </span>
                   </span>
                 </button>
 
@@ -160,12 +182,14 @@ const Header = ({
                     <RefreshCw
                       className={`w-4 h-4 ${autoRefresh ? "animate-spin" : ""}`}
                     />
-                    <span className="hidden sm:inline">{autoRefresh ? t("autoOn") : t("autoOff")}</span>
+                    <span className="hidden sm:inline">
+                      {autoRefresh ? t("autoOn") : t("autoOff")}
+                    </span>
                   </span>
                 </button>
               </div>
             </div>
-            
+
             <div className="flex items-center justify-end sm:justify-start">
               <LanguageSwitcher />
             </div>

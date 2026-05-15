@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
-import type { Notification, NotificationType } from "../hooks/useNotifications";
 import {
-  CheckCircle2,
   AlertCircle,
   AlertTriangle,
+  CheckCircle2,
   Info,
   X,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import type { Notification, NotificationType } from "../hooks/useNotifications";
 
 interface NotificationToastProps {
   notification: Notification;

@@ -14,6 +14,6 @@ export function formatDate(
   if (hours < 1) return t("now");
   if (hours < 24) return t("hoursAgo", { count: hours });
   if (days < 7) return t("daysAgo", { count: days });
-  
+
   return date.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US");
 }

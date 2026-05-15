@@ -1,32 +1,40 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useTranslations, useLocale } from "next-intl";
-import { NotificationContainer } from "../../components/Notifications";
-import { useNotifications } from "../../hooks/useNotifications";
-import { cleanFiveMColors, extractDiscordLink } from "../../utils/fivem";
-import { 
-  loadFavorites, saveFavorites, 
-  loadServerHistory, saveServerHistory,
-  loadLastServerId, saveLastServerId,
-  loadAutoRefresh, saveAutoRefresh,
-  FavoritePlayer, ServerHistoryItem
-} from "../../utils/storage";
-import { checkPlayerMatch, SearchMode } from "../../utils/search";
-import { formatDate } from "../../utils/format";
+import { useLocale, useTranslations } from "next-intl";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
-import Footer from "../../components/Footer";
-import TopServ from "../../components/TopServ";
-import Mobile from "../../components/Mobile";
+import FavoritesManager from "../../components/dashboard/FavoritesManager";
+import GlobalStats from "../../components/dashboard/GlobalStats";
 import Header from "../../components/dashboard/Header";
-import ServerBanner from "../../components/dashboard/ServerBanner";
-import Tabs from "../../components/dashboard/Tabs";
-import ServerHistoryComponent from "../../components/dashboard/ServerHistory";
 import PlayerFilters from "../../components/dashboard/PlayerFilters";
 import PlayersTable from "../../components/dashboard/PlayersTable";
-import FavoritesManager from "../../components/dashboard/FavoritesManager";
-import Statistics from "../../components/dashboard/Statistics";
 import RefreshBadge from "../../components/dashboard/RefreshBadge";
+import ServerBanner from "../../components/dashboard/ServerBanner";
+import ServerHistoryComponent from "../../components/dashboard/ServerHistory";
+import Statistics from "../../components/dashboard/Statistics";
+import Tabs from "../../components/dashboard/Tabs";
+import GlobalSearch from "../../components/discovery/GlobalSearch";
+import ServerMap from "../../components/discovery/ServerMap";
+import Footer from "../../components/Footer";
+import Mobile from "../../components/Mobile";
+import { NotificationContainer } from "../../components/Notifications";
+import TopServ from "../../components/TopServ";
+import { useNotifications } from "../../hooks/useNotifications";
+import { cleanFiveMColors, extractDiscordLink } from "../../utils/fivem";
+import { formatDate } from "../../utils/format";
+import { checkPlayerMatch, type SearchMode } from "../../utils/search";
+import {
+  type FavoritePlayer,
+  loadAutoRefresh,
+  loadFavorites,
+  loadLastServerId,
+  loadServerHistory,
+  type ServerHistoryItem,
+  saveAutoRefresh,
+  saveFavorites,
+  saveLastServerId,
+  saveServerHistory,
+} from "../../utils/storage";
 
 interface Player {
   id: number;
@@ -59,7 +67,8 @@ type SortOrder = "asc" | "desc";
 function App() {
   const t = useTranslations("common");
   const locale = useLocale();
-  const { notifications, addNotification, removeNotification } = useNotifications();
+  const { notifications, addNotification, removeNotification } =
+    useNotifications();
 
   // --- State ---
   const [currentTab, setCurrentTab] = useState<TabType>("players");
@@ -74,7 +83,9 @@ function App() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [sortField, setSortField] = useState<SortField>("id");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-  const [lastRefreshTimestamp, setLastRefreshTimestamp] = useState<number | null>(null);
+  const [lastRefreshTimestamp, setLastRefreshTimestamp] = useState<
+    number | null
+  >(null);
   const [displayedPlayersLimit, setDisplayedPlayersLimit] = useState(50);
   const [isMac, setIsMac] = useState(false);
   const [topServers, setTopServers] = useState<TopServer[]>([]);
@@ -86,69 +97,89 @@ function App() {
   }, []);
 
   // --- Data Fetching ---
-  const fetchServerData = useCallback(async (overrideServerId?: string) => {
-    const idToUse = (overrideServerId || serverId).trim();
-    if (!idToUse) return;
+  const fetchServerData = useCallback(
+    async (overrideServerId?: string) => {
+      const idToUse = (overrideServerId || serverId).trim();
+      if (!idToUse) return;
 
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/fivem/servers/single/${idToUse}`);
-      
-      if (response.status === 404) {
+      setLoading(true);
+      try {
+        const response = await fetch(`/api/fivem/servers/single/${idToUse}`);
+
+        if (response.status === 404) {
+          setServerInfo(null);
+          setServerId("");
+          setAutoRefresh(false);
+          addNotification({
+            type: "error",
+            title: t("error"),
+            message: t("serverNotFound"),
+          });
+          return;
+        }
+
+        if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
+
+        const data = await response.json();
+        const serverData = data.Data;
+
+        setServerInfo({
+          id: idToUse,
+          name: cleanFiveMColors(serverData?.hostname || `Serveur ${idToUse}`),
+          players: serverData?.players || [],
+          maxPlayers: serverData?.sv_maxclients || 0,
+          currentPlayers:
+            serverData?.clients || serverData?.players?.length || 0,
+          discordLink: extractDiscordLink(serverData?.vars),
+          description: serverData?.vars?.Moddés
+            ? cleanFiveMColors(serverData.vars.Moddés)
+            : undefined,
+        });
+
+        setLastRefreshTimestamp(Date.now());
+
+        setServerHistory((prev) => {
+          const filtered = prev.filter((s) => s.id !== idToUse);
+          const updated = [
+            {
+              id: idToUse,
+              name: cleanFiveMColors(
+                serverData?.hostname || `Serveur ${idToUse}`,
+              ),
+              lastVisited: Date.now(),
+            },
+            ...filtered,
+          ].slice(0, 10);
+          saveServerHistory(updated);
+          return updated;
+        });
+
+        addNotification({
+          type: "success",
+          title: t("serverLoaded"),
+          message: t("playersFound", {
+            count: serverData?.clients || serverData?.players?.length || 0,
+          }),
+        });
+      } catch (error) {
+        console.error("Fetch error:", error);
         setServerInfo(null);
-        setServerId("");
-        setAutoRefresh(false);
         addNotification({
           type: "error",
           title: t("error"),
-          message: t("serverNotFound"),
+          message: t("unableToLoadServerData"),
         });
-        return;
+      } finally {
+        setLoading(false);
       }
+    },
+    [serverId, addNotification, t],
+  );
 
-      if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
-
-      const data = await response.json();
-      const serverData = data.Data;
-
-      setServerInfo({
-        id: idToUse,
-        name: cleanFiveMColors(serverData?.hostname || `Serveur ${idToUse}`),
-        players: serverData?.players || [],
-        maxPlayers: serverData?.sv_maxclients || 0,
-        currentPlayers: serverData?.clients || serverData?.players?.length || 0,
-        discordLink: extractDiscordLink(serverData?.vars),
-        description: serverData?.vars?.Moddés ? cleanFiveMColors(serverData.vars.Moddés) : undefined,
-      });
-
-      setLastRefreshTimestamp(Date.now());
-
-      setServerHistory((prev) => {
-        const filtered = prev.filter((s) => s.id !== idToUse);
-        const updated = [{
-          id: idToUse,
-          name: cleanFiveMColors(serverData?.hostname || `Serveur ${idToUse}`),
-          lastVisited: Date.now(),
-        }, ...filtered].slice(0, 10);
-        saveServerHistory(updated);
-        return updated;
-      });
-
-      addNotification({
-        type: "success",
-        title: t("serverLoaded"),
-        message: t("playersFound", { count: serverData?.clients || serverData?.players?.length || 0 }),
-      });
-    } catch (error) {
-      console.error("Fetch error:", error);
-      setServerInfo(null);
-      addNotification({ type: "error", title: t("error"), message: t("unableToLoadServerData") });
-    } finally {
-      setLoading(false);
-    }
-  }, [serverId, addNotification, t]);
-
-  const { data: pinnedData, error: pinnedError } = useSWR(!serverId.trim() ? "https://runtime.fivem.net/pins.json" : null, fetcher);
+  const { data: pinnedData, error: pinnedError } = useSWR(
+    !serverId.trim() ? "https://runtime.fivem.net/pins.json" : null,
+    fetcher,
+  );
   const loadingTopServers = !pinnedData && !pinnedError && !serverId.trim();
 
   useEffect(() => {
@@ -166,7 +197,9 @@ function App() {
             currentPlayers: data.Data?.clients || 0,
             maxPlayers: data.Data?.sv_maxclients || 0,
           };
-        } catch { return null; }
+        } catch {
+          return null;
+        }
       });
       const results = await Promise.all(promises);
       setTopServers(results.filter((s): s is TopServer => s !== null));
@@ -176,32 +209,43 @@ function App() {
 
   // --- Effects ---
   useEffect(() => {
-    if (typeof navigator !== "undefined") setIsMac(navigator.userAgent.includes("Mac"));
-    
+    if (typeof navigator !== "undefined")
+      setIsMac(navigator.userAgent.includes("Mac"));
+
     // Initial Load from Storage
     const savedId = loadLastServerId();
     const savedHistory = loadServerHistory();
     const savedAuto = loadAutoRefresh();
     const savedFavs = loadFavorites();
 
-    if (savedId) { 
-      setServerId(savedId); 
-      fetchServerData(savedId); 
+    if (savedId) {
+      setServerId(savedId);
+      fetchServerData(savedId);
     }
     if (savedHistory.length > 0) setServerHistory(savedHistory);
     setAutoRefresh(savedAuto);
     if (savedFavs.length > 0) setFavorites(savedFavs);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { saveLastServerId(serverId); }, [serverId]);
-  useEffect(() => { saveFavorites(favorites); }, [favorites]);
-  useEffect(() => { saveAutoRefresh(autoRefresh); }, [autoRefresh]);
+  useEffect(() => {
+    saveLastServerId(serverId);
+  }, [serverId]);
+  useEffect(() => {
+    saveFavorites(favorites);
+  }, [favorites]);
+  useEffect(() => {
+    saveAutoRefresh(autoRefresh);
+  }, [autoRefresh]);
 
   useEffect(() => {
     if (!autoRefresh || !serverId.trim() || loading) return;
     const interval = setInterval(() => {
       fetchServerData();
-      addNotification({ type: "info", title: t("autoRefreshTitle"), message: t("dataUpdated") });
+      addNotification({
+        type: "info",
+        title: t("autoRefreshTitle"),
+        message: t("dataUpdated"),
+      });
     }, 30000);
     return () => clearInterval(interval);
   }, [autoRefresh, serverId, loading, addNotification, fetchServerData, t]);
@@ -210,47 +254,90 @@ function App() {
   const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
     if (scrollHeight - scrollTop - clientHeight < 200) {
-      setDisplayedPlayersLimit(prev => prev + 50);
+      setDisplayedPlayersLimit((prev) => prev + 50);
     }
   };
 
   const handleSort = (field: SortField) => {
-    if (sortField === field) setSortOrder(prev => prev === "asc" ? "desc" : "asc");
-    else { setSortField(field); setSortOrder("asc"); }
+    if (sortField === field)
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
   };
 
   const toggleFavorite = (player: Player) => {
-    const isFav = favorites.some(f => f.name.toLowerCase() === player.name.toLowerCase());
+    const isFav = favorites.some(
+      (f) => f.name.toLowerCase() === player.name.toLowerCase(),
+    );
     if (isFav) {
-      setFavorites(prev => prev.filter(f => f.name.toLowerCase() !== player.name.toLowerCase()));
-      addNotification({ type: "info", title: t("favoriteRemoved"), message: t("favoriteRemoved") });
+      setFavorites((prev) =>
+        prev.filter((f) => f.name.toLowerCase() !== player.name.toLowerCase()),
+      );
+      addNotification({
+        type: "info",
+        title: t("favoriteRemoved"),
+        message: t("favoriteRemoved"),
+      });
     } else {
-      setFavorites(prev => [...prev, { name: player.name, lastKnownId: player.id }]);
-      addNotification({ type: "success", title: t("favoriteAdded"), message: t("favoriteAdded") });
+      setFavorites((prev) => [
+        ...prev,
+        { name: player.name, lastKnownId: player.id },
+      ]);
+      addNotification({
+        type: "success",
+        title: t("favoriteAdded"),
+        message: t("favoriteAdded"),
+      });
     }
   };
 
   const addFavoriteManually = () => {
     const name = addFavoriteName.trim();
     if (!name) return;
-    if (favorites.some(f => f.name.toLowerCase() === name.toLowerCase())) return;
-    setFavorites(prev => [...prev, { name, lastKnownId: 0 }]);
+    if (favorites.some((f) => f.name.toLowerCase() === name.toLowerCase()))
+      return;
+    setFavorites((prev) => [...prev, { name, lastKnownId: 0 }]);
     setAddFavoriteName("");
-    addNotification({ type: "success", title: t("favoriteAdded"), message: t("favoriteAdded") });
+    addNotification({
+      type: "success",
+      title: t("favoriteAdded"),
+      message: t("favoriteAdded"),
+    });
   };
 
   const filteredPlayers = useMemo(() => {
     if (!serverInfo?.players) return [];
-    const filtered = serverInfo.players.filter(p => checkPlayerMatch(p, searchTerm, searchMode));
+    const filtered = serverInfo.players.filter((p) =>
+      checkPlayerMatch(p, searchTerm, searchMode),
+    );
     filtered.sort((a, b) => {
-      let av = sortField === "id" ? a.id : sortField === "name" ? a.name.toLowerCase() : a.ping;
-      let bv = sortField === "id" ? b.id : sortField === "name" ? b.name.toLowerCase() : b.ping;
+      const av =
+        sortField === "id"
+          ? a.id
+          : sortField === "name"
+            ? a.name.toLowerCase()
+            : a.ping;
+      const bv =
+        sortField === "id"
+          ? b.id
+          : sortField === "name"
+            ? b.name.toLowerCase()
+            : b.ping;
       if (av < bv) return sortOrder === "asc" ? -1 : 1;
       if (av > bv) return sortOrder === "asc" ? 1 : -1;
       return 0;
     });
     return filtered.slice(0, displayedPlayersLimit);
-  }, [serverInfo?.players, searchTerm, searchMode, sortField, sortOrder, displayedPlayersLimit]);
+  }, [
+    serverInfo?.players,
+    searchTerm,
+    searchMode,
+    sortField,
+    sortOrder,
+    displayedPlayersLimit,
+  ]);
 
   return (
     <>
@@ -281,30 +368,50 @@ function App() {
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[70vh]">
           {!serverInfo ? (
-            <TopServ
-              topServers={topServers}
-              loading={loadingTopServers}
-              onSelectServer={(id) => { setServerId(id); fetchServerData(id); }}
-            />
+            <div className="flex flex-col gap-12">
+              <GlobalStats />
+              <GlobalSearch
+                onSelectServer={(id) => {
+                  setServerId(id);
+                  fetchServerData(id);
+                }}
+              />
+              <ServerMap />
+              <TopServ
+                topServers={topServers}
+                loading={loadingTopServers}
+                onSelectServer={(id) => {
+                  setServerId(id);
+                  fetchServerData(id);
+                }}
+              />
+            </div>
           ) : (
             <>
               {currentTab === "players" && (
                 <div className="flex flex-col gap-6">
                   <ServerHistoryComponent
                     serverHistory={serverHistory}
-                    onSelectServer={(id) => { setServerId(id); fetchServerData(id); }}
+                    onSelectServer={(id) => {
+                      setServerId(id);
+                      fetchServerData(id);
+                    }}
                     onRemoveFromHistory={(id) => {
-                      const updated = serverHistory.filter(s => s.id !== id);
+                      const updated = serverHistory.filter((s) => s.id !== id);
                       setServerHistory(updated);
                       saveServerHistory(updated);
                     }}
                     formatDate={(date) => formatDate(date, t, locale)}
                   />
                   <PlayerFilters
-                    searchTerm={searchTerm} setSearchTerm={setSearchTerm}
-                    searchMode={searchMode} setSearchMode={setSearchMode}
-                    sortField={sortField} setSortField={setSortField}
-                    sortOrder={sortOrder} setSortOrder={setSortOrder}
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    searchMode={searchMode}
+                    setSearchMode={setSearchMode}
+                    sortField={sortField}
+                    setSortField={setSortField}
+                    sortOrder={sortOrder}
+                    setSortOrder={setSortOrder}
                   />
                   <PlayersTable
                     players={filteredPlayers}
@@ -313,28 +420,43 @@ function App() {
                     sortOrder={sortOrder}
                     handleSort={handleSort}
                     toggleFavorite={toggleFavorite}
-                    isPlayerFavorite={(name) => favorites.some(f => f.name.toLowerCase() === name.toLowerCase())}
+                    isPlayerFavorite={(name) =>
+                      favorites.some(
+                        (f) => f.name.toLowerCase() === name.toLowerCase(),
+                      )
+                    }
                     displayedPlayersLimit={displayedPlayersLimit}
-                    totalFilteredPlayers={serverInfo.players.filter(p => checkPlayerMatch(p, searchTerm, searchMode)).length}
+                    totalFilteredPlayers={
+                      serverInfo.players.filter((p) =>
+                        checkPlayerMatch(p, searchTerm, searchMode),
+                      ).length
+                    }
                     handleTableScroll={handleTableScroll}
                   />
                 </div>
               )}
               {currentTab === "favorites" && (
                 <FavoritesManager
-                  favorites={favorites} setFavorites={setFavorites}
-                  addFavoriteName={addFavoriteName} setAddFavoriteName={setAddFavoriteName}
+                  favorites={favorites}
+                  setFavorites={setFavorites}
+                  addFavoriteName={addFavoriteName}
+                  setAddFavoriteName={setAddFavoriteName}
                   addFavoriteManually={addFavoriteManually}
                   serverPlayers={serverInfo.players}
                 />
               )}
-              {currentTab === "statistics" && <Statistics serverInfo={serverInfo} loading={loading} />}
+              {currentTab === "statistics" && (
+                <Statistics serverInfo={serverInfo} loading={loading} />
+              )}
             </>
           )}
           <RefreshBadge lastRefreshTimestamp={lastRefreshTimestamp} />
         </main>
         <Footer />
-        <NotificationContainer notifications={notifications} onClose={removeNotification} />
+        <NotificationContainer
+          notifications={notifications}
+          onClose={removeNotification}
+        />
       </div>
     </>
   );

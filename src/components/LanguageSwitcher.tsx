@@ -1,7 +1,7 @@
 "use client";
 
-import { useLocale } from "next-intl";
 import { ChevronDown } from "lucide-react";
+import { useLocale } from "next-intl";
 
 const LanguageSwitcher = () => {
   const locale = useLocale();

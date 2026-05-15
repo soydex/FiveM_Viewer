@@ -1,4 +1,4 @@
-import { useState, ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
 export type NotificationType = "success" | "error" | "warning" | "info";
 

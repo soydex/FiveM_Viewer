@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Clock, ChevronDown, Server, Trash2 } from "lucide-react";
+import { ChevronDown, Clock, Server, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 
 interface ServerHistoryItem {
   id: string;
@@ -64,7 +64,9 @@ const ServerHistory = ({
               </div>
               <div
                 className={`text-xs transition-colors ${
-                  showHistory ? "text-purple-100" : "text-zinc-500 dark:text-zinc-400"
+                  showHistory
+                    ? "text-purple-100"
+                    : "text-zinc-500 dark:text-zinc-400"
                 }`}
               >
                 {serverHistory.length}{" "}
@@ -74,7 +76,9 @@ const ServerHistory = ({
           </div>
           <ChevronDown
             className={`w-5 h-5 transition-transform duration-300 ${
-              showHistory ? "rotate-180 text-white" : "text-zinc-400 dark:text-zinc-400"
+              showHistory
+                ? "rotate-180 text-white"
+                : "text-zinc-400 dark:text-zinc-400"
             }`}
           />
         </div>
@@ -82,13 +86,11 @@ const ServerHistory = ({
 
       {showHistory && (
         <>
-          <div 
-            className="fixed inset-0 z-40" 
+          <div
+            className="fixed inset-0 z-40"
             onClick={() => setShowHistory(false)}
           />
-          <div
-            className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top z-50 animate-in fade-in zoom-in-95"
-          >
+          <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top z-50 animate-in fade-in zoom-in-95">
             <div className="max-h-96 overflow-y-auto">
               {serverHistory.map((server, index) => (
                 <div
