@@ -9,6 +9,8 @@ export default function FavoritesPage() {
   const router = useRouter();
   const {
     serverInfo,
+    loading,
+    initialized,
     favorites,
     setFavorites,
     addFavoriteName,
@@ -17,12 +19,12 @@ export default function FavoritesPage() {
   } = useServer();
 
   useEffect(() => {
-    if (!serverInfo) {
+    if (initialized && !loading && !serverInfo) {
       router.push("/");
     }
-  }, [serverInfo, router]);
+  }, [initialized, loading, serverInfo, router]);
 
-  if (!serverInfo) return null;
+  if (!initialized || loading || !serverInfo) return null;
 
   return (
     <FavoritesManager

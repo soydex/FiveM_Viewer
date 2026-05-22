@@ -61,6 +61,7 @@ interface ServerContextType {
   serverInfo: ServerInfo | null;
   setServerInfo: (info: ServerInfo | null) => void;
   loading: boolean;
+  initialized: boolean;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   searchMode: SearchMode;
@@ -106,6 +107,7 @@ export function ServerProvider({ children }: { children: ReactNode }) {
   const [serverId, setServerId] = useState("");
   const [serverInfo, setServerInfo] = useState<ServerInfo | null>(null);
   const [loading, setLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchMode, setSearchMode] = useState<SearchMode>("contains");
   const [favorites, setFavorites] = useState<FavoritePlayer[]>([]);
@@ -281,7 +283,9 @@ export function ServerProvider({ children }: { children: ReactNode }) {
 
     if (savedId) {
       setServerId(savedId);
-      fetchServerData(savedId);
+      fetchServerData(savedId).finally(() => setInitialized(true));
+    } else {
+      setInitialized(true);
     }
     if (savedHistory.length > 0) setServerHistory(savedHistory);
     setAutoRefresh(savedAuto);
@@ -407,6 +411,7 @@ export function ServerProvider({ children }: { children: ReactNode }) {
       serverInfo,
       setServerInfo,
       loading,
+      initialized,
       searchTerm,
       setSearchTerm,
       searchMode,
@@ -443,6 +448,7 @@ export function ServerProvider({ children }: { children: ReactNode }) {
       serverId,
       serverInfo,
       loading,
+      initialized,
       searchTerm,
       searchMode,
       favorites,

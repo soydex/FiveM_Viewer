@@ -19,6 +19,7 @@ export default function PlayersPage() {
   const {
     serverInfo,
     loading,
+    initialized,
     serverId,
     setServerId,
     fetchServerData,
@@ -41,12 +42,12 @@ export default function PlayersPage() {
   } = useServer();
 
   useEffect(() => {
-    if (!serverInfo) {
+    if (initialized && !loading && !serverInfo) {
       router.push("/");
     }
-  }, [serverInfo, router]);
+  }, [initialized, loading, serverInfo, router]);
 
-  if (!serverInfo) return null;
+  if (!initialized || loading || !serverInfo) return null;
 
   return (
     <div className="flex flex-col gap-6">
