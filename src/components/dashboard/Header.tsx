@@ -1,31 +1,24 @@
 "use client";
 
-import { Activity, Command, Play, RefreshCw } from "lucide-react";
+import { Activity, Command, Play, RefreshCw, Settings } from "lucide-react";
 import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import LanguageSwitcher from "../LanguageSwitcher";
+import { Link } from "@/routing";
+import { useServer } from "@/components/ServerContext";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-interface HeaderProps {
-  serverId: string;
-  setServerId: (id: string) => void;
-  fetchServerData: (overrideId?: string) => void;
-  loading: boolean;
-  autoRefresh: boolean;
-  setAutoRefresh: (val: boolean) => void;
-  isMac: boolean;
-}
-
-const Header = ({
-  serverId,
-  setServerId,
-  fetchServerData,
-  loading,
-  autoRefresh,
-  setAutoRefresh,
-  isMac,
-}: HeaderProps) => {
+const Header = () => {
+  const {
+    serverId,
+    setServerId,
+    fetchServerData,
+    loading,
+    autoRefresh,
+    setAutoRefresh,
+    isMac,
+  } = useServer();
   const t = useTranslations("common");
 
   const { data: globalCounts } = useSWR(
@@ -127,17 +120,26 @@ const Header = ({
                   autoFocus
                   placeholder={t("serverIdPlaceholder")}
                   value={serverId}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      fetchServerData();
+                    }
+                  }}
                   onChange={(e) => {
                     const newValue = e.target.value.trim();
                     setServerId(newValue);
-                    if (newValue.length === 6) {
+                    const isDirect =
+                      newValue.includes(":") || newValue.includes(".");
+                    if (!isDirect && newValue.length === 6) {
                       fetchServerData(newValue);
                     }
                   }}
-                  className="bg-transparent text-gray-900 dark:text-[#f4f4f5] py-1 focus:outline-none w-full sm:w-32 text-sm placeholder-gray-500 dark:placeholder-zinc-500"
+                  className="bg-transparent text-gray-900 dark:text-[#f4f4f5] py-1 focus:outline-none w-full sm:w-48 text-sm placeholder-gray-500 dark:placeholder-zinc-500"
                 />
                 <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest ml-1 shrink-0">
-                  ID
+                  {serverId.includes(":") || serverId.includes(".")
+                    ? "Direct"
+                    : "ID"}
                 </span>
               </div>
 
@@ -192,6 +194,12 @@ const Header = ({
 
             <div className="flex items-center justify-end sm:justify-start">
               <LanguageSwitcher />
+            </div>
+
+            <div>
+              <Link href="/settings" className="opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] active:scale-95">
+                <Settings className="w-4 h-4" />
+              </Link>
             </div>
           </div>
         </div>

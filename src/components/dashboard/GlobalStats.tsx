@@ -17,7 +17,7 @@ const StatCard = ({ title, current, peak, icon }: StatCardProps) => {
   const t = useTranslations("common");
 
   return (
-    <div className="bg-white dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all hover:shadow-md">
+    <div className="bg-white dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm transition-all hover:shadow-md">
       <div className="flex items-center justify-between mb-4">
         <div className={`p-3 rounded-lg bg-opacity-10 dark:bg-opacity-20`}>
           {icon}

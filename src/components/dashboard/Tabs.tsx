@@ -2,23 +2,24 @@
 
 import { BarChart3, Heart, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Link, usePathname } from "@/routing";
+import { useServer } from "@/components/ServerContext";
 
-type TabType = "players" | "favorites" | "statistics";
-
-interface TabsProps {
-  currentTab: TabType;
-  setCurrentTab: (tab: TabType) => void;
-  playersCount: number;
-  favoritesCount: number;
-}
-
-const Tabs = ({
-  currentTab,
-  setCurrentTab,
-  playersCount,
-  favoritesCount,
-}: TabsProps) => {
+const Tabs = () => {
   const t = useTranslations("common");
+  const pathname = usePathname();
+  const { serverInfo, favorites } = useServer();
+
+  const playersCount = serverInfo?.players?.length || 0;
+  const favoritesCount = favorites?.length || 0;
+
+  const currentTab = pathname.endsWith("/players")
+    ? "players"
+    : pathname.endsWith("/favorites")
+    ? "favorites"
+    : pathname.endsWith("/statistics")
+    ? "statistics"
+    : "";
 
   const tabs = [
     {
@@ -41,9 +42,9 @@ const Tabs = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex space-x-8 overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => (
-            <button
+            <Link
               key={tab.id}
-              onClick={() => setCurrentTab(tab.id as TabType)}
+              href={`/${tab.id}`}
               className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                 currentTab === tab.id
                   ? "border-purple-500 text-purple-600"
@@ -52,7 +53,7 @@ const Tabs = ({
             >
               <tab.icon className="w-4 h-4" />
               {tab.label} {tab.count !== undefined && `(${tab.count})`}
-            </button>
+            </Link>
           ))}
         </div>
       </div>

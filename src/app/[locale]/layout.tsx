@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
 import { Providers } from "../../components/Providers";
+import DashboardLayout from "../../components/DashboardLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,7 +45,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <Providers locale={locale} messages={messages as any}>
-          {children}
+          <DashboardLayout>{children}</DashboardLayout>
         </Providers>
       </body>
     </html>

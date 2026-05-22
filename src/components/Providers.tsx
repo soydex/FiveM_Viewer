@@ -2,6 +2,7 @@
 
 import { NextIntlClientProvider } from "next-intl";
 import { ThemeProvider } from "next-themes";
+import { ServerProvider } from "./ServerContext";
 
 export function Providers({
   children,
@@ -19,7 +20,7 @@ export function Providers({
       timeZone="Europe/Paris"
     >
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-        {children}
+        <ServerProvider>{children}</ServerProvider>
       </ThemeProvider>
     </NextIntlClientProvider>
   );

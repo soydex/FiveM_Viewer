@@ -79,7 +79,7 @@ export function StatisticsCharts({ players }: StatisticsChartsProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div className="p-6 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-950 dark:border-zinc-700">
+      <div className="p-6 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-950 dark:border-zinc-900">
         <div className="flex items-center gap-2 mb-4">
           <BarChart3 className="w-5 h-5 text-blue-500" />
           <h3 className="text-lg font-semibold">IDs</h3>
@@ -111,7 +111,7 @@ export function StatisticsCharts({ players }: StatisticsChartsProps) {
         </ResponsiveContainer>
       </div>
 
-      <div className="p-6 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-950 dark:border-zinc-700">
+      <div className="p-6 rounded-lg border bg-white border-zinc-200 dark:bg-zinc-950 dark:border-zinc-900">
         <div className="flex items-center gap-2 mb-4">
           <Activity className="w-5 h-5 text-green-500" />
           <h3 className="text-lg font-semibold">Pings</h3>

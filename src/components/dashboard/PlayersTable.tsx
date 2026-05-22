@@ -1,6 +1,17 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ArrowUpDown, Star } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Star,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  ShieldX,
+  Loader2,
+  Activity,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import React, { useState } from "react";
 import { extractSocialLinks } from "../../utils/fivem";
@@ -10,6 +21,12 @@ interface Player {
   name: string;
   ping: number;
   identifiers?: string[];
+}
+
+interface PolicyResult {
+  status: "clean" | "banned" | "error";
+  id: string;
+  data?: any;
 }
 
 interface PlayersTableProps {
@@ -32,10 +49,10 @@ export function PlayersTableSkeleton() {
       <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
         <thead className="bg-zinc-50 dark:bg-zinc-950">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+            <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
               #
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+            <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
               {t("id")}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
@@ -55,10 +72,10 @@ export function PlayersTableSkeleton() {
         <tbody className="bg-white dark:bg-zinc-950 divide-y divide-zinc-200 dark:divide-zinc-700">
           {Array.from({ length: 8 }).map((_, index) => (
             <tr key={index} className="animate-pulse">
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
                 <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded w-6"></div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
                 <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded w-12"></div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
@@ -97,6 +114,12 @@ const PlayersTable = ({
   const [expandedPlayerId, setExpandedPlayerId] = useState<number | null>(null);
   const [playerStats, setPlayerStats] = useState<any>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [policyResults, setPolicyResults] = useState<
+    Record<string, PolicyResult>
+  >({});
+  const [policyLoading, setPolicyLoading] = useState<Record<string, boolean>>(
+    {},
+  );
 
   if (loading) return <PlayersTableSkeleton />;
 
@@ -142,6 +165,35 @@ const PlayersTable = ({
     }
   };
 
+  const checkPolicy = async (id: string) => {
+    if (policyLoading[id] || policyResults[id]) return;
+
+    setPolicyLoading((prev) => ({ ...prev, [id]: true }));
+    try {
+      const res = await fetch(`/api/fivem/policy?id=${encodeURIComponent(id)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPolicyResults((prev) => ({
+          ...prev,
+          [id]: {
+            status: data.status === "clean" ? "clean" : "banned",
+            id,
+            data,
+          },
+        }));
+      } else {
+        setPolicyResults((prev) => ({
+          ...prev,
+          [id]: { status: "error", id },
+        }));
+      }
+    } catch (error) {
+      setPolicyResults((prev) => ({ ...prev, [id]: { status: "error", id } }));
+    } finally {
+      setPolicyLoading((prev) => ({ ...prev, [id]: false }));
+    }
+  };
+
   return (
     <div
       className="overflow-x-auto overflow-y-auto max-h-[600px] rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-sm"
@@ -150,10 +202,19 @@ const PlayersTable = ({
       <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700 relative">
         <thead className="bg-zinc-50 dark:bg-zinc-950 sticky top-0 z-10 shadow-sm">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800">
+            <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800">
               {t("hash")}
             </th>
-            {(["id", "name", "ping"] as const).map((field) => (
+            <th
+              className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800 cursor-pointer hover:bg-zinc-100 hover:dark:bg-zinc-900 transition-colors group"
+              onClick={() => handleSort("id")}
+            >
+              <div className="flex items-center gap-1 select-none">
+                {t("id")}
+                <SortIcon field="id" />
+              </div>
+            </th>
+            {(["name", "ping"] as const).map((field) => (
               <th
                 key={field}
                 className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider backdrop-blur-md bg-zinc-50/90 dark:bg-zinc-950/90 border-b border-zinc-200 dark:border-zinc-800 cursor-pointer hover:bg-zinc-100 hover:dark:bg-zinc-900 transition-colors group"
@@ -184,10 +245,10 @@ const PlayersTable = ({
                   className={`hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors ${isExpanded ? "bg-zinc-100 dark:bg-zinc-800" : ""}`}
                   onClick={() => handleRowClick(player)}
                 >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-sm">
                     {index + 1}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-mono">
+                  <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-sm font-mono">
                     {player.id}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -291,44 +352,101 @@ const PlayersTable = ({
                 {isExpanded && (
                   <tr className="bg-zinc-50/50 dark:bg-zinc-900/50">
                     <td colSpan={6} className="px-6 py-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1 duration-200">
-                        <div className="space-y-2">
-                          <h4 className="text-xs font-bold uppercase text-zinc-500 tracking-wider">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <div className="space-y-4">
+                          <h4 className="text-xs font-bold uppercase text-zinc-500 tracking-wider flex items-center gap-2">
+                            <Activity className="w-3 h-3" />
                             Playtime & Session
                           </h4>
                           {statsLoading ? (
-                            <div className="h-4 bg-zinc-200 dark:bg-zinc-800 rounded w-24 animate-pulse"></div>
+                            <div className="flex flex-col gap-2">
+                              <div className="h-4 bg-zinc-200 dark:bg-zinc-800 rounded w-32 animate-pulse"></div>
+                              <div className="h-4 bg-zinc-200 dark:bg-zinc-800 rounded w-24 animate-pulse"></div>
+                            </div>
                           ) : (
-                            <div className="text-sm">
-                              {playerStats?.playtime?.[0]?.seconds ? (
-                                <span>
-                                  {(
-                                    playerStats.playtime[0].seconds / 3600
-                                  ).toFixed(1)}{" "}
-                                  hours on record
-                                </span>
-                              ) : (
-                                <span className="text-zinc-400 italic">
-                                  No playtime data available
-                                </span>
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium">
+                                {playerStats?.playtime?.[0]?.seconds ? (
+                                  <span className="text-zinc-900 dark:text-zinc-100">
+                                    {(
+                                      playerStats.playtime[0].seconds / 3600
+                                    ).toFixed(1)}{" "}
+                                    hours on record
+                                  </span>
+                                ) : (
+                                  <span className="text-zinc-400 italic">
+                                    No playtime data available
+                                  </span>
+                                )}
+                              </div>
+                              {playerStats?.globalCounts && (
+                                <div className="text-[11px] text-zinc-500">
+                                  Last seen: {new Date().toLocaleDateString()}
+                                </div>
                               )}
                             </div>
                           )}
                         </div>
-                        <div className="space-y-2">
-                          <h4 className="text-xs font-bold uppercase text-zinc-500 tracking-wider">
-                            Identifiers
+                        <div className="space-y-4">
+                          <h4 className="text-xs font-bold uppercase text-zinc-500 tracking-wider flex items-center gap-2">
+                            <Shield className="w-3 h-3" />
+                            Identifiers & Policy
                           </h4>
-                          <div className="flex flex-wrap gap-1">
-                            {player.identifiers?.map((id) => (
-                              <span
-                                key={id}
-                                className="text-[10px] px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-800 rounded font-mono truncate max-w-[200px]"
-                                title={id}
-                              >
-                                {id}
-                              </span>
-                            )) || (
+                          <div className="flex flex-col gap-2">
+                            {player.identifiers?.map((id) => {
+                              const result = policyResults[id];
+                              const loading = policyLoading[id];
+
+                              return (
+                                <div
+                                  key={id}
+                                  className="flex items-center gap-2 group/id"
+                                >
+                                  <span
+                                    className="text-[10px] px-2 py-1 bg-zinc-200 dark:bg-zinc-800 rounded font-mono truncate max-w-[250px] border border-zinc-300 dark:border-zinc-700"
+                                    title={id}
+                                  >
+                                    {id}
+                                  </span>
+
+                                  {loading ? (
+                                    <Loader2 className="w-3 h-3 animate-spin text-zinc-400" />
+                                  ) : result ? (
+                                    <div
+                                      className="flex items-center gap-1.5"
+                                      title={
+                                        result.status === "clean"
+                                          ? "No global bans found"
+                                          : "Policy entry found"
+                                      }
+                                    >
+                                      {result.status === "clean" ? (
+                                        <ShieldCheck className="w-4 h-4 text-green-500" />
+                                      ) : result.status === "banned" ? (
+                                        <ShieldAlert className="w-4 h-4 text-red-500" />
+                                      ) : (
+                                        <ShieldX className="w-4 h-4 text-zinc-400" />
+                                      )}
+                                      <span
+                                        className={`text-[10px] font-bold uppercase ${result.status === "clean" ? "text-green-600" : result.status === "banned" ? "text-red-600" : "text-zinc-500"}`}
+                                      >
+                                        {result.status}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        checkPolicy(id);
+                                      }}
+                                      className="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline opacity-0 group-hover/id:opacity-100 transition-opacity"
+                                    >
+                                      Check Policy
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            }) || (
                               <span className="text-zinc-400 text-xs italic">
                                 Hidden identifiers
                               </span>
