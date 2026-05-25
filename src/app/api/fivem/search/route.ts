@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     // 2. Fetch top servers for common locales to have a larger pool
     const locales = ["en-US", "fr-FR", "de-DE", "es-ES"];
     const topPromises = locales.map((l) =>
-      fetch(`https://servers-frontend.fivem.net/api/servers/top/${l}`, {
+      fetch(`https://frontend.cfx-services.net/api/servers/top/${l}`, {
         headers: {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -70,7 +70,7 @@ export async function GET(request: Request) {
 
       try {
         const res = await fetch(
-          `https://servers-frontend.fivem.net/api/servers/single/${s.id}`,
+          `https://frontend.cfx-services.net/api/servers/single/${s.id}`,
           {
             headers: {
               "User-Agent":

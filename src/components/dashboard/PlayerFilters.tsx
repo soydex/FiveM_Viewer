@@ -6,7 +6,9 @@ import {
   ArrowUpDown,
   Check,
   ChevronDown,
+  Cross,
   Search,
+  X,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
@@ -140,8 +142,17 @@ const PlayerFilters = ({
             placeholder={t("searchPlaceholder")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-3 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-950 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400 w-full ring-1 ring-transparent focus:ring-purple-500 focus:border-purple-500 transition-all"
+            className="pl-10 pr-12 py-2 border rounded-lg bg-white border-zinc-300 text-gray-900 placeholder-gray-500 dark:bg-zinc-950 dark:border-zinc-600 dark:text-white dark:placeholder-gray-400 w-full ring-1 ring-transparent focus:ring-purple-500 focus:border-purple-500 transition-all"
           />
+          {searchTerm.length > 0 && (
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-zinc-900 dark:hover:text-blue-500"
+              onClick={() => setSearchTerm("")}
+            >
+              <X className="w-5 h-5 cursor-pointer" />
+            </button>
+          )}
         </div>
         <div className="flex items-center bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-600 rounded-lg overflow-hidden h-[42px]">
           {(

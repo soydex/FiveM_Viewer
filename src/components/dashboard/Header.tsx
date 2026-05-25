@@ -197,8 +197,11 @@ const Header = () => {
             </div>
 
             <div>
-              <Link href="/settings" className="opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] active:scale-95">
-                <Settings className="w-4 h-4" />
+              <Link
+                href="/settings"
+                className="opacity-90 hover:opacity-100 transition-all p-[2px] bg-black rounded-[12px] active:scale-95"
+              >
+                <Settings className="w-4 h-4 hover:text-purple-500" />
               </Link>
             </div>
           </div>

@@ -6,7 +6,7 @@ export async function GET(
 ) {
   const { slug } = await params;
   const path = slug.join("/");
-  const url = `https://servers-frontend.fivem.net/api/${path}`;
+  const url = `https://frontend.cfx-services.net/api/${path}`;
 
   console.log(`[API Proxy] Fetching: ${url}`);
 

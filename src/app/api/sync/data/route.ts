@@ -19,16 +19,20 @@ function getUserIdFromRequest(request: NextRequest): number | null {
 
 export async function GET(request: NextRequest) {
   const userId = getUserIdFromRequest(request);
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!userId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const userData = db.prepare("SELECT data_json FROM user_data WHERE user_id = ?").get(userId) as { data_json: string } | undefined;
+  const userData = db
+    .prepare("SELECT data_json FROM user_data WHERE user_id = ?")
+    .get(userId) as { data_json: string } | undefined;
 
   return NextResponse.json(userData ? JSON.parse(userData.data_json) : {});
 }
 
 export async function POST(request: NextRequest) {
   const userId = getUserIdFromRequest(request);
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!userId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const data = await request.json();
   const dataJson = JSON.stringify(data);

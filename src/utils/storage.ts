@@ -67,7 +67,8 @@ export async function pullFromServer(): Promise<boolean> {
       const data = await res.json();
       if (data.favorites) saveFavorites(data.favorites);
       if (data.history) saveServerHistory(data.history);
-      if (typeof data.autoRefresh === "boolean") saveAutoRefresh(data.autoRefresh);
+      if (typeof data.autoRefresh === "boolean")
+        saveAutoRefresh(data.autoRefresh);
       localStorage.setItem(KEYS.LAST_SYNC, Date.now().toString());
       return true;
     }

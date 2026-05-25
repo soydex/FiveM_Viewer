@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     }
 
     const countsRes = await fetch(
-      "https://runtime.fivem.net/counts.json",
+      "https://static.cfx.re/runtime/counts.json",
     ).catch(() => null);
     results.globalCounts = countsRes?.ok ? await countsRes.json() : null;
 

@@ -16,10 +16,10 @@ const Tabs = () => {
   const currentTab = pathname.endsWith("/players")
     ? "players"
     : pathname.endsWith("/favorites")
-    ? "favorites"
-    : pathname.endsWith("/statistics")
-    ? "statistics"
-    : "";
+      ? "favorites"
+      : pathname.endsWith("/statistics")
+        ? "statistics"
+        : "";
 
   const tabs = [
     {
