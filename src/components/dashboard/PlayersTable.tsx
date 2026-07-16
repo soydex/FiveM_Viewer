@@ -111,7 +111,7 @@ const PlayersTable = ({
   handleTableScroll,
 }: PlayersTableProps) => {
   const t = useTranslations("common");
-  const [expandedPlayerId, setExpandedPlayerId] = useState<number | null>(null);
+  const [expandedPlayerKey, setExpandedPlayerKey] = useState<string | null>(null);
   const [playerStats, setPlayerStats] = useState<any>(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const [policyResults, setPolicyResults] = useState<
@@ -135,13 +135,13 @@ const PlayersTable = ({
     );
   };
 
-  const handleRowClick = async (player: Player) => {
-    if (expandedPlayerId === player.id) {
-      setExpandedPlayerId(null);
+  const handleRowClick = async (player: Player, playerKey: string) => {
+    if (expandedPlayerKey === playerKey) {
+      setExpandedPlayerKey(null);
       return;
     }
 
-    setExpandedPlayerId(player.id);
+    setExpandedPlayerKey(playerKey);
     setStatsLoading(true);
     setPlayerStats(null);
 
@@ -243,13 +243,14 @@ const PlayersTable = ({
           ) : (
             players.map((player, index) => {
               const socialLinks = extractSocialLinks(player.identifiers || []);
-              const isExpanded = expandedPlayerId === player.id;
+              const playerKey = `${player.name}-${player.id}-${index}`;
+              const isExpanded = expandedPlayerKey === playerKey;
 
               return (
-                <React.Fragment key={player.id}>
+                <React.Fragment key={playerKey}>
                   <tr
                     className={`hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors ${isExpanded ? "bg-zinc-100 dark:bg-zinc-800" : ""}`}
-                    onClick={() => handleRowClick(player)}
+                    onClick={() => handleRowClick(player, playerKey)}
                   >
                     <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-sm">
                       {index + 1}
@@ -399,60 +400,62 @@ const PlayersTable = ({
                               Identifiers & Policy
                             </h4>
                             <div className="flex flex-col gap-2">
-                              {player.identifiers?.map((id) => {
-                                const result = policyResults[id];
-                                const loading = policyLoading[id];
+                              {player.identifiers && player.identifiers.length > 0 ? (
+                                player.identifiers.map((id) => {
+                                  const result = policyResults[id];
+                                  const loading = policyLoading[id];
 
-                                return (
-                                  <div
-                                    key={id}
-                                    className="flex items-center gap-2 group/id"
-                                  >
-                                    <span
-                                      className="text-[10px] px-2 py-1 bg-zinc-200 dark:bg-zinc-800 rounded font-mono truncate max-w-[250px] border border-zinc-300 dark:border-zinc-700"
-                                      title={id}
+                                  return (
+                                    <div
+                                      key={id}
+                                      className="flex items-center gap-2 group/id"
                                     >
-                                      {id}
-                                    </span>
+                                      <span
+                                        className="text-[10px] px-2 py-1 bg-zinc-200 dark:bg-zinc-800 rounded font-mono truncate max-w-[250px] border border-zinc-300 dark:border-zinc-700"
+                                        title={id}
+                                      >
+                                        {id}
+                                      </span>
 
-                                    {loading ? (
-                                      <Loader2 className="w-3 h-3 animate-spin text-zinc-400" />
-                                    ) : result ? (
-                                      <div
-                                        className="flex items-center gap-1.5"
-                                        title={
-                                          result.status === "clean"
-                                            ? "No global bans found"
-                                            : "Policy entry found"
-                                        }
-                                      >
-                                        {result.status === "clean" ? (
-                                          <ShieldCheck className="w-4 h-4 text-green-500" />
-                                        ) : result.status === "banned" ? (
-                                          <ShieldAlert className="w-4 h-4 text-red-500" />
-                                        ) : (
-                                          <ShieldX className="w-4 h-4 text-zinc-400" />
-                                        )}
-                                        <span
-                                          className={`text-[10px] font-bold uppercase ${result.status === "clean" ? "text-green-600" : result.status === "banned" ? "text-red-600" : "text-zinc-500"}`}
+                                      {loading ? (
+                                        <Loader2 className="w-3 h-3 animate-spin text-zinc-400" />
+                                      ) : result ? (
+                                        <div
+                                          className="flex items-center gap-1.5"
+                                          title={
+                                            result.status === "clean"
+                                              ? "No global bans found"
+                                              : "Policy entry found"
+                                          }
                                         >
-                                          {result.status}
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          checkPolicy(id);
-                                        }}
-                                        className="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline opacity-0 group-hover/id:opacity-100 transition-opacity"
-                                      >
-                                        Check Policy
-                                      </button>
-                                    )}
-                                  </div>
-                                );
-                              }) || (
+                                          {result.status === "clean" ? (
+                                            <ShieldCheck className="w-4 h-4 text-green-500" />
+                                          ) : result.status === "banned" ? (
+                                            <ShieldAlert className="w-4 h-4 text-red-500" />
+                                          ) : (
+                                            <ShieldX className="w-4 h-4 text-zinc-400" />
+                                          )}
+                                          <span
+                                            className={`text-[10px] font-bold uppercase ${result.status === "clean" ? "text-green-600" : result.status === "banned" ? "text-red-600" : "text-zinc-500"}`}
+                                          >
+                                            {result.status}
+                                          </span>
+                                        </div>
+                                      ) : (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            checkPolicy(id);
+                                          }}
+                                          className="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline opacity-0 group-hover/id:opacity-100 transition-opacity"
+                                        >
+                                          Check Policy
+                                        </button>
+                                      )}
+                                    </div>
+                                  );
+                                })
+                              ) : (
                                 <span className="text-zinc-400 text-xs italic">
                                   Hidden identifiers
                                 </span>

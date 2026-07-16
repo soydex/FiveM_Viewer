@@ -137,6 +137,12 @@
     "notFoundTitle": "Page non trouvée",
     "notFoundDescription": "La page que vous recherchez n'existe pas ou a été déplacée.",
     "redirecting": "Redirection vers la page d'accueil dans {seconds} secondes...",
-    "goBack": "Retourner à l'accueil"
+    "goBack": "Retourner à l'accueil",
+    "deprecationTitle": "Fin de service de FiveM Viewer",
+    "deprecationNotice": "En raison des récentes mesures de sécurité prises par Cfx.re et les développeurs de serveurs (masquage/obfuscation des pseudonymes et identifiants des joueurs), FiveM Viewer n'est plus en mesure de fournir des informations fiables. Par conséquent, le projet s'arrêtera définitivement dans un mois.",
+    "deprecationButton": "Accéder à l'application",
+    "deprecationWhyTitle": "Pourquoi cet arrêt ?",
+    "deprecationWhyText": "Les développeurs de serveurs FiveM masquent désormais les données de connexion (pseudonymes et identifiants des joueurs) sur l'API publique Cfx.re (remplacés par exemple par le nom 'Player' et l'ID 0). N'étant plus en mesure de proposer des informations et statistiques fiables, le maintien du projet n'est plus justifié.",
+    "deprecationCountdown": "Fermeture définitive dans 1 mois"
   }
 }
