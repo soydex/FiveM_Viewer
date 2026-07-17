@@ -2,8 +2,9 @@
 
 import { NextIntlClientProvider } from "next-intl";
 import { ThemeProvider } from "next-themes";
-import { ServerProvider } from "./ServerContext";
 
+// Service arrêté : le ServerProvider (SWR, appels API, localStorage) est
+// désactivé. On ne conserve que l'i18n et le thème pour afficher le message.
 export function Providers({
   children,
   messages,
@@ -20,7 +21,7 @@ export function Providers({
       timeZone="Europe/Paris"
     >
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-        <ServerProvider>{children}</ServerProvider>
+        {children}
       </ThemeProvider>
     </NextIntlClientProvider>
   );

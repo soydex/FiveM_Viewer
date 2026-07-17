@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
-export async function GET() {
-  return NextResponse.json({ ok: true });
+// Service arrêté : cette route API est désactivée, plus aucun appel n'est effectué.
+export function GET() {
+  return NextResponse.json(
+    { error: "Service permanently shut down" },
+    { status: 410 },
+  );
 }
