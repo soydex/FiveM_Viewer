@@ -139,10 +139,10 @@
     "redirecting": "Redirecting to the home page in {seconds} seconds...",
     "goBack": "Go back home",
     "deprecationTitle": "FiveM Viewer Service End",
-    "deprecationNotice": "Due to recent security measures implemented by Cfx.re and server developers (obfuscating player names and identifiers), FiveM Viewer is no longer able to provide reliable information. Consequently, the project will shut down permanently in one month.",
+    "deprecationNotice": "Due to recent security measures implemented by Cfx.re and server developers (obfuscating player names and identifiers), FiveM Viewer is no longer able to provide reliable information. Consequently, the project has now permanently shut down and the application is no longer accessible.",
     "deprecationButton": "Access the application (temporary)",
     "deprecationWhyTitle": "Why this shutdown?",
     "deprecationWhyText": "FiveM server developers are now masking player connection data (player names and identifiers) on the public Cfx.re API (replaced, for example, by the name 'Player' and ID 0). Since we can no longer provide reliable information and statistics, maintaining this project is no longer justified.",
-    "deprecationCountdown": "Permanent shutdown in 1 month"
+    "deprecationCountdown": "Service permanently shut down"
   }
 }
