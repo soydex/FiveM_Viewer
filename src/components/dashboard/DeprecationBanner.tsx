@@ -1,14 +1,15 @@
 "use client";
 
-import React from "react";
 import { AlertTriangle, ArrowRight, ShieldAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface DeprecationBannerProps {
-  onDismiss: () => void;
+  onDismiss?: () => void;
 }
 
-export default function DeprecationBanner({ onDismiss }: DeprecationBannerProps) {
+export default function DeprecationBanner({
+  onDismiss,
+}: DeprecationBannerProps) {
   const t = useTranslations("common");
 
   return (
@@ -44,15 +45,17 @@ export default function DeprecationBanner({ onDismiss }: DeprecationBannerProps)
           </p>
         </div>
 
-        {/* Action Button */}
-        <button
-          type="button"
-          onClick={onDismiss}
-          className="w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-t from-[#8122b0] to-[#c045fc] hover:from-[#a62ce2] hover:to-[#d584fd] active:scale-95 text-white rounded-xl font-semibold text-sm sm:text-base shadow-lg shadow-purple-500/10 transition-all cursor-pointer group"
-        >
-          {t("deprecationButton")}
-          <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-        </button>
+        {/* Action Button — only shown while access is still allowed */}
+        {onDismiss && (
+          <button
+            type="button"
+            onClick={onDismiss}
+            className="w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-t from-[#8122b0] to-[#c045fc] hover:from-[#a62ce2] hover:to-[#d584fd] active:scale-95 text-white rounded-xl font-semibold text-sm sm:text-base shadow-lg shadow-purple-500/10 transition-all cursor-pointer group"
+          >
+            {t("deprecationButton")}
+            <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+          </button>
+        )}
       </div>
     </div>
   );
